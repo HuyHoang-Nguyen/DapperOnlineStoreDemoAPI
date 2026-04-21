@@ -1,11 +1,11 @@
 ﻿using DapperOnlineStoreAPI.Models;
 
-namespace DapperOnlineStoreAPI.IRepositories
+namespace DapperOnlineStoreAPI.Services.Interfaces
 {
-    public interface ICartRepository
+    public interface ICartService
     {
-        Task AddToCart(Guid productId, int quantity);
         Task<IEnumerable<CartItemsModel>> GetCart();
+        Task AddToCart(Guid productId, int quantity);
         Task UpdateCartItem(Guid productId, int quantity);
         Task RemoveCartItem(Guid productId);
     }

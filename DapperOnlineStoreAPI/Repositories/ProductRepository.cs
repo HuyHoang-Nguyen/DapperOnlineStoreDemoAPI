@@ -105,10 +105,19 @@ namespace DapperOnlineStoreAPI.Repositories
                 maxStock = maxStock,
             };
             var result = await connection.QueryAsync<GetProductQueryModel>("sp_SearchProduct", param, commandType: CommandType.StoredProcedure);
-            var pagedResult = result.Select(p => new Product
+            //var pagedResult = result.Select(p => new Product
+            //{
+            //    Id = p.Id,
+            //    CategoryId = p.CategoryId,
+            //    CategoryName = p.CategoryName,
+            //    Name = p.Name,
+            //    Price = p.Price,
+            //    Stock = p.Stock
+            //});
+            IEnumerable<Product> query = result.Select(p => new Product
             {
                 Id = p.Id,
-                CategoryId= p.CategoryId,
+                CategoryId = p.CategoryId,
                 CategoryName = p.CategoryName,
                 Name = p.Name,
                 Price = p.Price,
@@ -119,60 +128,61 @@ namespace DapperOnlineStoreAPI.Repositories
             {
                 if (ascending)
                 {
-                    pagedResult = pagedResult.OrderBy(p => p.Name);
+                    query = query.OrderBy(p => p.Name);
                 }
                 else
                 {
-                    pagedResult = pagedResult.OrderByDescending(p => p.Name);
+                    query = query.OrderByDescending(p => p.Name);
                 }
             }
             else if (sortBy == "categoryid")
             {
                 if (ascending)
                 {
-                    pagedResult = pagedResult.OrderBy(p => p.CategoryId);
+                    query = query.OrderBy(p => p.CategoryId);
                 }
                 else
                 {
-                    pagedResult = pagedResult.OrderByDescending(p => p.CategoryId);
+                    query = query.OrderByDescending(p => p.CategoryId);
                 }
             }
             else if (sortBy == "price")
             {
                 if (ascending)
                 {
-                    pagedResult = pagedResult.OrderBy(p => p.Price);
+                    query = query.OrderBy(p => p.Price);
                 }
                 else
                 {
-                    pagedResult = pagedResult.OrderByDescending(p => p.Price);
+                    query = query.OrderByDescending(p => p.Price);
                 }
             }
             else if (sortBy == "stock")
             {
                 if (ascending)
                 {
-                    pagedResult = pagedResult.OrderBy(p => p.Stock);
+                    query = query.OrderBy(p => p.Stock);
                 }
                 else
                 {
-                    pagedResult = pagedResult.OrderByDescending(p => p.Stock);
+                    query = query.OrderByDescending(p => p.Stock);
                 }
             }
             else
             {
                 if (ascending)
                 {
-                    pagedResult = pagedResult.OrderBy(p => p.Id);
+                    query = query.OrderBy(p => p.Id);
                 }
                 else
                 {
-                    pagedResult = pagedResult.OrderByDescending(p => p.Id);
+                    query = query.OrderByDescending(p => p.Id);
                 }
             }
-
-            var totalPage = pagedResult.Count();
-            var data = pagedResult.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var list = query.ToList();
+            var totalRecords = list.Count();
+            var data = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var totalPage = (int)Math.Ceiling((double)totalRecords / pageSize);
             return new PagingResult<Product>
             {
                 Data = data,
@@ -180,6 +190,12 @@ namespace DapperOnlineStoreAPI.Repositories
                 Page = page,
                 PageSize = pageSize
             };
+        }
+        public async Task<int?> GetStockAsync(Guid id)
+        {
+            using var connection = CreateConnection();
+            var sql = "select Stock from Products where Id = @Id and IsDeleted = 0 ";
+            return await connection.QueryFirstOrDefaultAsync<int?>(sql, new { Id = id });
         }
     }
 }

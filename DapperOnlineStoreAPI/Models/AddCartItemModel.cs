@@ -1,6 +1,6 @@
 ﻿namespace DapperOnlineStoreAPI.Models
 {
-    public class AddToCartModel
+    public class AddCartItemModel
     {
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
