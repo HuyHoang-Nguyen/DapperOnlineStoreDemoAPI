@@ -10,5 +10,6 @@ namespace DapperOnlineStoreAPI.Services.Interfaces
         Task<User?> GetByIdAsync(Guid id);
         Task<int> UpdateAsync(Guid id, UpdateUserModel u);
         Task<int> DeleteAsync(Guid id);
+        Task<User?> GetByEmailAsync(string email);
     }
 }

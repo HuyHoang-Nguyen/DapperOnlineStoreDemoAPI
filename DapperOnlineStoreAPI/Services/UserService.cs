@@ -78,5 +78,17 @@ namespace DapperOnlineStoreAPI.Services
             }
             return await _userRepository.DeleteAsync(id);
         }
+        public async Task<User?> GetByEmailAsync (string email)
+        {
+            var u = await _userRepository.GetByEmailAsync(email);
+            if (u == null)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumUserValidationError.UserNotFound.ToString()
+                });
+            }
+            return u;
+        }
     }
 }

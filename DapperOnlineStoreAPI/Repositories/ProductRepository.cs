@@ -97,7 +97,7 @@ namespace DapperOnlineStoreAPI.Repositories
             using var connection = CreateConnection();
             var param = new
             {
-                keyword = keyword,
+                keyword = keyword?.Trim(),
                 categoryId = categoryId,
                 minPrice = minPrice,
                 maxPrice = maxPrice,

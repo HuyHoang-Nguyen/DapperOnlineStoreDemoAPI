@@ -1,5 +1,4 @@
-﻿using DapperOnlineStoreAPI.IRepositories;
-using DapperOnlineStoreAPI.Models;
+﻿using DapperOnlineStoreAPI.Models;
 using DapperOnlineStoreAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,27 +18,27 @@ namespace DapperOnlineStoreAPI.Controllers
         [HttpPost("items")]
         public async Task<IActionResult> Add([FromBody] AddCartItemModel add)
         {
-            await _cartService.AddToCart(add.ProductId, add.Quantity);
+            await _cartService.AddToCart(add.UserId, add.ProductId, add.Quantity);
             return Ok();
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery]Guid userId)
         {
-            var result = await _cartService.GetCart();
+            var result = await _cartService.GetCart(userId);
             return Ok(result);
         }
         [HttpPut("items/{productId}")]
-        public async Task<IActionResult> Update(Guid productId, [FromBody]UpdateCartModel update)
+        public async Task<IActionResult> Update([FromQuery]Guid userId, Guid productId, [FromBody]UpdateCartModel update)
         {
-            await _cartService.UpdateCartItem(productId, update.QuantityChange);
-            return Ok();
+            await _cartService.UpdateCartItem(userId, productId, update.Quantity);
+            return NoContent();
         }
         [HttpDelete("items/{productId}")]
-        public async Task<IActionResult> Remove(Guid productId)
+        public async Task<IActionResult> Remove([FromQuery]Guid userId, Guid productId)
         {
-            await _cartService.RemoveCartItem(productId);
-            return Ok();
+            await _cartService.RemoveCartItem(userId, productId);
+            return NoContent();
         }
     }
 }

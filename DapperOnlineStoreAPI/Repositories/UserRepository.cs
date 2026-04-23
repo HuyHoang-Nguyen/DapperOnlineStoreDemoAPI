@@ -79,5 +79,11 @@ namespace DapperOnlineStoreAPI.Repositories
                 "      set IsDeleted = 1 where Id = @Id and IsDeleted = 0 ";
             return await connection.ExecuteAsync(sql, new { Id = id });
         }
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            using var connection = CreateConnection();
+            var sql = "select Id, Email, Password from Users where Email = @Email ";
+            return await connection.QueryFirstOrDefaultAsync<User>(sql, new { Email = email });
+        }
     }
 }

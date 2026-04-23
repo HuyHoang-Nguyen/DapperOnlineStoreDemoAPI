@@ -1,4 +1,5 @@
-﻿using DapperOnlineStoreAPI.Enum.EnumError;
+﻿using DapperOnlineStoreAPI.Entities;
+using DapperOnlineStoreAPI.Enum.EnumError;
 using DapperOnlineStoreAPI.GlobalExceptionHandler;
 using DapperOnlineStoreAPI.IRepositories;
 using DapperOnlineStoreAPI.Models;
@@ -15,11 +16,11 @@ namespace DapperOnlineStoreAPI.Services
             _cartRepository = cartRepository;
             _productRepository = productRepository;
         }
-        public async Task<IEnumerable<CartItemsModel>> GetCart()
+        public async Task<IEnumerable<CartItemsModel>> GetCart(Guid userId)
         {
-            return await _cartRepository.GetCart();
+            return await _cartRepository.GetCart(userId);
         }
-        public async Task AddToCart(Guid productId, int quantity)
+        public async Task AddToCart(Guid userId, Guid productId, int quantity)
         {
             var stock = await _productRepository.GetStockAsync(productId);
             if (productId == Guid.Empty)
@@ -43,9 +44,9 @@ namespace DapperOnlineStoreAPI.Services
                     EnumCartValidationError.OutOfStock.ToString()
                 });
             }
-            await _cartRepository.AddToCart(productId, quantity);
+            await _cartRepository.AddToCart(userId, productId, quantity);
         }
-        public async Task UpdateCartItem(Guid productId, int quantityChange)
+        public async Task UpdateCartItem(Guid userId, Guid productId, int quantity)
         {
             if (productId == Guid.Empty)
             {
@@ -54,9 +55,9 @@ namespace DapperOnlineStoreAPI.Services
                     EnumCartValidationError.ProductIdInvalid.ToString()
                 });
             }
-            await _cartRepository.UpdateCartItem(productId, quantityChange);
+            await _cartRepository.UpdateCartItem(userId, productId, quantity);
         }
-        public async Task RemoveCartItem(Guid productId)
+        public async Task RemoveCartItem(Guid userId, Guid productId)
         {
             if (productId == Guid.Empty)
             {
@@ -65,7 +66,7 @@ namespace DapperOnlineStoreAPI.Services
                     EnumCartValidationError.ProductIdInvalid.ToString()
                 });
             }
-            await _cartRepository.RemoveCartItem(productId);
+            await _cartRepository.RemoveCartItem(userId, productId);
         }
     }
 }

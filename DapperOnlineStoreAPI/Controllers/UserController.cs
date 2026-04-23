@@ -44,6 +44,11 @@ namespace DapperOnlineStoreAPI.Controllers
             await _userService.DeleteAsync(id);
             return NoContent();
         }
-       
+        [HttpGet("email")]
+        public async Task<IActionResult> GetByEmail(string email)
+        {
+            var result = await _userService.GetByEmailAsync(email);
+            return Ok(result);
+        }
     }
 }

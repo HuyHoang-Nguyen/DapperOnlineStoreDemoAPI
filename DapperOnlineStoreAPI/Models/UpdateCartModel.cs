@@ -2,6 +2,6 @@
 {
     public class UpdateCartModel
     {
-        public int QuantityChange { get; set; }
+        public int Quantity { get; set; }
     }
 }

@@ -4,9 +4,9 @@ namespace DapperOnlineStoreAPI.IRepositories
 {
     public interface ICartRepository
     {
-        Task AddToCart(Guid productId, int quantity);
-        Task<IEnumerable<CartItemsModel>> GetCart();
-        Task UpdateCartItem(Guid productId, int quantity);
-        Task RemoveCartItem(Guid productId);
+        Task AddToCart(Guid userId, Guid productId, int quantity);
+        Task<IEnumerable<CartItemsModel>> GetCart(Guid userId);
+        Task UpdateCartItem(Guid userId, Guid productId, int quantity);
+        Task RemoveCartItem(Guid userId, Guid productId);
     }
 }
