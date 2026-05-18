@@ -33,7 +33,15 @@ namespace DapperOnlineStoreAPI.Repositories
             using var connection = CreateConnection();
             await connection.ExecuteAsync("sp_RemoveCartItem", new { UserId = userId, productId = productId}, commandType: CommandType.StoredProcedure);
         }
-
+        public async Task RemoveAllCartItems(Guid userId)
+        {
+            using var connection = CreateConnection();
+            var sql = "delete ci " +
+                      "from CartItems ci " +
+                      "join Carts c on c.Id = ci.CartId " +
+                      "where c.UserId = @UserId and IsDeleted = 0";
+            await connection.ExecuteAsync(sql, new { UserId = userId });
+        }
     }
 }
 

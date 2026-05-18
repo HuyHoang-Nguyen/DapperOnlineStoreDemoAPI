@@ -40,5 +40,11 @@ namespace DapperOnlineStoreAPI.Controllers
             await _cartService.RemoveCartItem(userId, productId);
             return NoContent();
         }
+        [HttpDelete]
+        public async Task<IActionResult> RemoveAllCartItems([FromQuery] Guid userId)
+        {
+            await _cartService.RemoveAllCartItems(userId);
+            return NoContent();
+        }
     }
 }

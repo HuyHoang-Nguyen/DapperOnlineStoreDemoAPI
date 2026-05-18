@@ -8,5 +8,6 @@ namespace DapperOnlineStoreAPI.Services.Interfaces
         Task AddToCart(Guid userId, Guid productId, int quantity);
         Task UpdateCartItem(Guid userId, Guid productId, int quantity);
         Task RemoveCartItem(Guid userId, Guid productId);
+        Task RemoveAllCartItems(Guid userId);
     }
 }

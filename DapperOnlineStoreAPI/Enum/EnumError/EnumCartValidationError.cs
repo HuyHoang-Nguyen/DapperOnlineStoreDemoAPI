@@ -6,5 +6,6 @@
         ProductNotFound,
         QuantityInvalid,
         OutOfStock,
+        UserIdInvalid,
     }
 }

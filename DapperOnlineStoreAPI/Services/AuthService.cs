@@ -23,14 +23,7 @@ namespace DapperOnlineStoreAPI.Services
                 });
             }
             var user = await _userRepository.GetByEmailAsync(email);
-            if (user == null)
-            {
-                throw new ValidationException(new List<string>
-                {
-                    EnumUserValidationError.UserNotFound.ToString()
-                });
-            }
-            if (user.Password != password)
+            if (user == null || user.Password != password)
             {
                 throw new ValidationException(new List<string>
                 {

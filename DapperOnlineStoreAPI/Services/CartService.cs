@@ -22,7 +22,6 @@ namespace DapperOnlineStoreAPI.Services
         }
         public async Task AddToCart(Guid userId, Guid productId, int quantity)
         {
-            var stock = await _productRepository.GetStockAsync(productId);
             if (productId == Guid.Empty)
             {
                 throw new ValidationException(new List<string>
@@ -30,6 +29,8 @@ namespace DapperOnlineStoreAPI.Services
                     EnumCartValidationError.ProductIdInvalid.ToString()
                 });
             }
+            var stock = await _productRepository.GetStockAsync(productId);
+
             if (quantity <= 0)
             {
                 throw new ValidationException(new List<string>
@@ -55,6 +56,28 @@ namespace DapperOnlineStoreAPI.Services
                     EnumCartValidationError.ProductIdInvalid.ToString()
                 });
             }
+            if (quantity < 0)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumCartValidationError.QuantityInvalid.ToString()
+                });
+            }
+            var stock = await _productRepository.GetStockAsync(productId);
+            if (stock == null)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumCartValidationError.ProductNotFound.ToString()
+                });
+            }
+            if (quantity > stock)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumCartValidationError.OutOfStock.ToString()
+                });
+            }
             await _cartRepository.UpdateCartItem(userId, productId, quantity);
         }
         public async Task RemoveCartItem(Guid userId, Guid productId)
@@ -67,6 +90,17 @@ namespace DapperOnlineStoreAPI.Services
                 });
             }
             await _cartRepository.RemoveCartItem(userId, productId);
+        }
+        public async Task RemoveAllCartItems(Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumCartValidationError.UserIdInvalid.ToString()
+                });
+            }
+            await _cartRepository.RemoveAllCartItems(userId);
         }
     }
 }

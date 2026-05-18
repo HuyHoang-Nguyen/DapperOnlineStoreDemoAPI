@@ -54,13 +54,17 @@ namespace DapperOnlineStoreAPI.Services
             var validateErrors = ProductValidator.ValidateUpdate(p);
             errors.AddRange(validateErrors.Select(x => x.ToString()));
 
-            var exists = _productRepository.GetByIdAsync(id);
+            var exists = await _productRepository.GetByIdAsync(id);
             if (exists == null)
             {
                 throw new ValidationException(new List<string>
                 {
                     EnumProductValidationError.ProductNotFound.ToString()
                 });
+            }
+            if (p.CategoryId.HasValue && !await _productRepository.CategoryCheckAsync(p.CategoryId.Value))
+            {
+                errors.Add(EnumProductValidationError.CategoryInvalid.ToString());
             }
             if (errors.Any())
             {
@@ -72,7 +76,7 @@ namespace DapperOnlineStoreAPI.Services
         }
         public async Task<int> DeleteAsync(Guid id)
         {
-            var exists = _productRepository.GetByIdAsync(id);
+            var exists =  await _productRepository.GetByIdAsync(id);
             if (exists == null)
             {
                 throw new ValidationException(new List<string>
@@ -84,6 +88,20 @@ namespace DapperOnlineStoreAPI.Services
         }
         public async Task<PagingResult<Product>> SearchAsync(string? keyword, Guid? categoryId, decimal? minPrice, decimal? maxPrice, int? minStock, int? maxStock, int page, int pageSize, string sortBy, string sortDir)
         {
+            if (page < 1)
+            {
+                page = 1;
+            }
+            if (pageSize < 1)
+            {
+                pageSize = 10;
+            }
+            if (pageSize > 50)
+            {
+                pageSize = 50;
+            }
+            sortBy = sortBy?.ToLower() ?? "id";
+            sortDir = sortDir?.ToLower() ?? "asc";
             return await _productRepository.SearchAsync(keyword, categoryId, minPrice, maxPrice, minStock, maxStock, page, pageSize, sortBy, sortDir);
         }
     }

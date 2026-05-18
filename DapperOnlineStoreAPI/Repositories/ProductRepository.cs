@@ -22,7 +22,7 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<Guid> CreateAsync(ProductModel p)
         {
             using var connection = CreateConnection();
-            var sql = "insert into Products(CategoryId, Name, Price, Stock) " +
+            var sql =   "insert into Products(CategoryId, Name, Price, Stock) " +
                 "       output inserted.Id " +
                 "       values(@CategoryId, @Name, @Price, @Stock) ";
             var product = new
@@ -37,23 +37,31 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             using var connection = CreateConnection();
-            var sql = "select * from Products where IsDeleted = 0 ";
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL " +
+                      " from Products p " +
+                      " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
+                      " where p.IsDeleted = 0 ";
             var product = await connection.QueryAsync<Product>(sql);
 
             return product.Select(p => new Product
             {
                 Id = p.Id,
                 CategoryId = p.CategoryId,
+                CategoryName = p.CategoryName,
                 Name = p.Name,
                 Price = p.Price,
-                Stock = p.Stock
+                Stock = p.Stock,
+                ImageUrl = p.ImageUrl
             });
         }
         public async Task<Product?> GetByIdAsync(Guid id)
         {
             using var connection = CreateConnection();
-            var sql = "select * from Products where Id = @Id and IsDeleted = 0 ";
-            var product = await connection.QueryFirstOrDefaultAsync(sql, new { Id = id});
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL " +
+                      " from Products p " +
+                      " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
+                      " where p.Id = @Id and p.IsDeleted = 0 ";
+            var product = await connection.QueryFirstOrDefaultAsync<Product>(sql, new { Id = id });
             if (product == null)
             {
                 return null;
@@ -62,9 +70,11 @@ namespace DapperOnlineStoreAPI.Repositories
             {
                 Id = product.Id,
                 CategoryId = product.CategoryId,
+                CategoryName = product.CategoryName,
                 Name = product.Name,
                 Price = product.Price,
-                Stock = product.Stock
+                Stock = product.Stock,
+                ImageUrl = product.ImageUrl
             };
         }
         public async Task<int> UpdateAsync(Guid id, UpdateProductModel p)
@@ -89,7 +99,8 @@ namespace DapperOnlineStoreAPI.Repositories
         {
             using var connection = CreateConnection();
             var sql = "update Products " +
-                "      set IsDeleted = 1 where Id = @Id and IsDeleted = 0 ";
+                "      set IsDeleted = 1 where Id = @Id and IsDeleted = 0 " +
+                "      @declare @AffectedRows int = @@rowcount ";
             return await connection.ExecuteAsync(sql, new { Id = id });
         }
         public async Task<PagingResult<Product>> SearchAsync(string? keyword, Guid? categoryId, decimal? minPrice, decimal? maxPrice, int? minStock, int? maxStock, int page, int pageSize, string sortBy, string sortDir)
@@ -121,9 +132,12 @@ namespace DapperOnlineStoreAPI.Repositories
                 CategoryName = p.CategoryName,
                 Name = p.Name,
                 Price = p.Price,
-                Stock = p.Stock
+                Stock = p.Stock,
+                ImageUrl = p.ImageUrl,
             });
             var ascending = sortDir.ToLower() != "desc";
+            query = query.OrderBy(p => p.Stock <= 0);
+
             if (sortBy == "name")
             {
                 if (ascending)
@@ -164,7 +178,7 @@ namespace DapperOnlineStoreAPI.Repositories
                     query = query.OrderBy(p => p.Stock);
                 }
                 else
-                {
+                {   
                     query = query.OrderByDescending(p => p.Stock);
                 }
             }
