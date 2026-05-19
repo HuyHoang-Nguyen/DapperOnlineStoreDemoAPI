@@ -10,5 +10,6 @@ namespace DapperOnlineStoreAPI.IRepositories
         Task<Order?> GetByIdAsync(Guid orderId, Guid userId);
         Task<IEnumerable<OrderItem>> GetOrderItemsAsync(Guid orderId);
         Task DeleteOrderAsync(Guid orderId, Guid userId);
+        Task<bool> CodeExistsAsync(string code);
     }
 }

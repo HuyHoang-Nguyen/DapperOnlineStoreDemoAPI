@@ -9,5 +9,8 @@
         public decimal Price { get; set; }
         public int Stock { get; set; }
         public string? ImageUrl { get; set; }
+        public List<string>? ImageUrls { get; set; }
+        public decimal? Discount { get; set; }
+        public decimal? DiscountPrice { get; set; }
     }
 }

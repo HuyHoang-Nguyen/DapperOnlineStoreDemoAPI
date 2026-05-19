@@ -9,6 +9,7 @@
         StockREquired,
         StockInvalid,
         NameRequired,
-        NameInvalid
+        NameInvalid,
+        DiscountInvalid
     }
 }

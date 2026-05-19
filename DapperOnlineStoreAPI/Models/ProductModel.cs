@@ -12,5 +12,6 @@ namespace DapperOnlineStoreAPI.Models
         public decimal Price { get; set; }
         [Required]
         public int Stock { get; set; }
+        public decimal? Discount {  get; set; }
     }
 }

@@ -12,6 +12,14 @@ namespace DapperOnlineStoreAPI.Repositories
         public ProductRepository(IConfiguration configuration) : base(configuration) 
         { 
         }
+        private static decimal? CalcDiscountedPrice(decimal price, decimal? discount)
+        {
+            if (discount == null || discount <= 0)
+            {
+                return null;
+            }
+            return Math.Round(price * (1 - discount.Value / 100), 0);
+        }
         public async Task<bool> CategoryCheckAsync(Guid categoryId)
         {
             using var connection = CreateConnection();
@@ -22,22 +30,23 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<Guid> CreateAsync(ProductModel p)
         {
             using var connection = CreateConnection();
-            var sql =   "insert into Products(CategoryId, Name, Price, Stock) " +
+            var sql =   "insert into Products(CategoryId, Name, Price, Stock, Discount) " +
                 "       output inserted.Id " +
-                "       values(@CategoryId, @Name, @Price, @Stock) ";
+                "       values(@CategoryId, @Name, @Price, @Stock, @Discount) ";
             var product = new
             {
                 p.CategoryId,
                 p.Name,
                 p.Price,
-                p.Stock
+                p.Stock,
+                p.Discount
             };
             return await connection.QuerySingleAsync<Guid>(sql, product);
         }
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             using var connection = CreateConnection();
-            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL " +
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount " +
                       " from Products p " +
                       " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
                       " where p.IsDeleted = 0 ";
@@ -51,13 +60,16 @@ namespace DapperOnlineStoreAPI.Repositories
                 Name = p.Name,
                 Price = p.Price,
                 Stock = p.Stock,
-                ImageUrl = p.ImageUrl
+                ImageUrl = p.ImageUrl,
+                ImageUrls = (p.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
+                Discount = p.Discount,
+                DiscountPrice = CalcDiscountedPrice(p.Price, p.Discount),
             });
         }
         public async Task<Product?> GetByIdAsync(Guid id)
         {
             using var connection = CreateConnection();
-            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL " +
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount " +
                       " from Products p " +
                       " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
                       " where p.Id = @Id and p.IsDeleted = 0 ";
@@ -74,7 +86,10 @@ namespace DapperOnlineStoreAPI.Repositories
                 Name = product.Name,
                 Price = product.Price,
                 Stock = product.Stock,
-                ImageUrl = product.ImageUrl
+                ImageUrl = product.ImageUrl,
+                ImageUrls = (product.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
+                Discount = product.Discount,
+                DiscountPrice = CalcDiscountedPrice(product.Price, product.Discount)
             };
         }
         public async Task<int> UpdateAsync(Guid id, UpdateProductModel p)
@@ -84,7 +99,8 @@ namespace DapperOnlineStoreAPI.Repositories
                 "      set CategoryId = coalesce(@CategoryId, CategoryId), " +
                 "      Name = coalesce(@Name, Name), " +
                 "      Price = coalesce(@Price, Price), " +
-                "      Stock = coalesce(@Stock, Stock) " +
+                "      Stock = coalesce(@Stock, Stock), " +
+                "      Discount = coalesce(@Discount, Discount) " +
                 "      where Id = @Id and IsDeleted = 0 ";
             return await connection.ExecuteAsync(sql, new
             {
@@ -93,6 +109,7 @@ namespace DapperOnlineStoreAPI.Repositories
                 Name = p.Name,
                 Price = p.Price,
                 Stock = p.Stock,
+                Discount = p.Discount,
             });
         }
         public async Task<int> DeleteAsync(Guid id)
@@ -134,6 +151,9 @@ namespace DapperOnlineStoreAPI.Repositories
                 Price = p.Price,
                 Stock = p.Stock,
                 ImageUrl = p.ImageUrl,
+                ImageUrls = (p.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
+                Discount = p.Discount,
+                DiscountPrice = CalcDiscountedPrice(p.Price, p.Discount)
             });
             var ascending = sortDir.ToLower() != "desc";
             query = query.OrderBy(p => p.Stock <= 0);

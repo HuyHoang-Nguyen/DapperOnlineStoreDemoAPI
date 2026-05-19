@@ -17,11 +17,15 @@ namespace DapperOnlineStoreAPI.Repositories
             using var connection = CreateConnection();
             await connection.ExecuteAsync("sp_AddToCart", new { UserId = userId, ProductId = productId, Quantity = quantity }, commandType: CommandType.StoredProcedure);
         }
-
         public async Task<IEnumerable<CartItemsModel>> GetCart(Guid userId)
         {
             using var connection = CreateConnection();
-            return await connection.QueryAsync<CartItemsModel>("sp_GetCart", new { UserId = userId }, commandType: CommandType.StoredProcedure);
+            var items = await connection.QueryAsync<CartItemsModel>("sp_GetCart", new { UserId = userId }, commandType: CommandType.StoredProcedure);
+            return items.Select(i =>
+            {
+                i.ImageUrls = (i.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList();
+                return i;
+            });
         }
         public async Task UpdateCartItem(Guid userId, Guid productId, int quantity)
         {
@@ -39,7 +43,7 @@ namespace DapperOnlineStoreAPI.Repositories
             var sql = "delete ci " +
                       "from CartItems ci " +
                       "join Carts c on c.Id = ci.CartId " +
-                      "where c.UserId = @UserId and IsDeleted = 0";
+                      "where c.UserId = @UserId";
             await connection.ExecuteAsync(sql, new { UserId = userId });
         }
     }

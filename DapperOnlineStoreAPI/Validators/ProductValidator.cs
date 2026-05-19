@@ -5,7 +5,7 @@ namespace DapperOnlineStoreAPI.Validators
 {
     public class ProductValidator
     {
-        public static List<EnumProductValidationError> ValidateCommon(Guid? categoryId, string? name, decimal? price, int? stock)
+        public static List<EnumProductValidationError> ValidateCommon(Guid? categoryId, string? name, decimal? price, int? stock, decimal? discount)
         {
             var errors = new List<EnumProductValidationError>();
             if (categoryId == null)
@@ -32,15 +32,20 @@ namespace DapperOnlineStoreAPI.Validators
             {
                 errors.Add(EnumProductValidationError.StockInvalid);
             }
+            if (discount != null && (discount < 0 || discount > 100))
+            {
+                errors.Add(EnumProductValidationError.DiscountInvalid);
+            }
             return errors;
         }
         public static List<EnumProductValidationError> ValidateCreate(ProductModel p)
         {
-            return ValidateCommon(p.CategoryId, p.Name, p.Price, p.Stock);
+            return ValidateCommon(p.CategoryId, p.Name, p.Price, p.Stock, p.Discount);
         }
         public static List<EnumProductValidationError> ValidateUpdate(UpdateProductModel p)
         {
-            return ValidateCommon(p.CategoryId, p.Name, p.Price, p.Stock);
+            return ValidateCommon(p.CategoryId, p.Name, p.Price, p.Stock, p.Discount);
         }
+
     }
 }
