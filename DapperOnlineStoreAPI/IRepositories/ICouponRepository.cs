@@ -5,6 +5,6 @@ namespace DapperOnlineStoreAPI.IRepositories
     public interface ICouponRepository
     {
         Task<Coupon?> GetByCodeAsync (string code);
-        Task DescUsageLimitAsync(string couponId);
+        Task DescUsageLimitAsync(Guid couponId);
     }
 }

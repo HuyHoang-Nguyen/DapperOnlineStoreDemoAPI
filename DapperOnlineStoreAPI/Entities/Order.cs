@@ -10,5 +10,8 @@ namespace DapperOnlineStoreAPI.Entities
         public EnumOrderStatus Status { get; set; }
         public DateTime CreatedDate { get; set; }
         public string? Code { get; set; }
+        public string? CouponCode { get; set; }
+        public decimal? DiscountAmount { get; set; }
+
     }
 }

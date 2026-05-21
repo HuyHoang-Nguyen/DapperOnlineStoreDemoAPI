@@ -27,7 +27,7 @@ namespace DapperOnlineStoreAPI.Services
             {
                 throw new ValidationException(new List<string>
                 {
-                    EnumCouponValidationError.CouponNotFound.ToString()
+                    EnumCouponValidationError.CouponInactive.ToString()
                 });
             }
             if (coupon.ExpireDate.HasValue && coupon.ExpireDate < DateTime.UtcNow)

@@ -12,7 +12,7 @@ namespace DapperOnlineStoreAPI.Repositories
         public OrderRepository(IConfiguration configuration) : base(configuration)
         {
         }
-        public async Task<Guid> CreateOrderAsync (Guid userId, IEnumerable<CartItemsModel> cartItems)
+        public async Task<Guid> CreateOrderAsync (Guid userId, IEnumerable<CartItemsModel> cartItems, string? couponCode , decimal discountAmount)
         {
             using var connection = CreateConnection();
             const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -36,10 +36,12 @@ namespace DapperOnlineStoreAPI.Repositories
                 Code = code,
                 UserId = userId,
                 TotalAmount = items.Sum(x => (x.DiscountPrice ?? x.Price) * x.Quantity),
+                CouponCode = couponCode,
+                DiscountAmount = discountAmount,
                 Status = EnumOrderStatus.Created,
             };
-            var createOrderSql = "insert into Orders(Id, Code, UserId, TotalAmount, Status) " +
-                                 "values (@Id, @Code, @UserId, @TotalAmount, @Status) ";
+            var createOrderSql = "insert into Orders(Id, Code, UserId, TotalAmount, DiscountAmount, CouponCode, Status) " +
+                                 "values (@Id, @Code, @UserId, @TotalAmount, @DiscountAmount, @CouponCode, @Status) ";
 
             await connection.ExecuteAsync(createOrderSql, order);
 

@@ -13,9 +13,9 @@ namespace DapperOnlineStoreAPI.Controllers
             _orderService = orderService;
         }
         [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout([FromQuery] Guid userId)
+        public async Task<IActionResult> Checkout([FromQuery] Guid userId, [FromQuery] string? couponCode)
         {
-            var result = await _orderService.OrderCheckoutAsync(userId);
+            var result = await _orderService.OrderCheckoutAsync(userId, couponCode);
             return Ok(result);
         }
         [HttpGet]

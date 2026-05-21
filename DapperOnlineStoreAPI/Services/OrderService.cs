@@ -10,12 +10,16 @@ namespace DapperOnlineStoreAPI.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly ICartRepository _cartRepository;
-        public OrderService(IOrderRepository orderRepository, ICartRepository cartRepository)
+        private readonly ICouponRepository _couponRepository;
+        private readonly ICouponService _couponService;
+        public OrderService(IOrderRepository orderRepository, ICartRepository cartRepository, ICouponRepository couponRepository, ICouponService couponService)
         {
             _orderRepository = orderRepository;
             _cartRepository = cartRepository;
+            _couponRepository = couponRepository;
+            _couponService = couponService;
         }
-        public async Task<Guid> OrderCheckoutAsync(Guid userId)
+        public async Task<Guid> OrderCheckoutAsync(Guid userId, string? couponCode)
         {
             if (userId == Guid.Empty)
             {
@@ -32,7 +36,25 @@ namespace DapperOnlineStoreAPI.Services
                     EnumOrderValidationError.CartEmpty.ToString()
                 });
             }
-            return await _orderRepository.CreateOrderAsync(userId, cartItems);
+
+            decimal discountAmount = 0;
+            if (!string.IsNullOrEmpty(couponCode))
+            {
+                var cartTotal = cartItems.Sum(x => (x.DiscountPrice ?? x.Price) * x.Quantity);
+                var couponResult = await _couponService.ValidateAsync(couponCode, cartTotal);
+                discountAmount = couponResult.DiscountAmount;
+            }
+
+            var orderId = await _orderRepository.CreateOrderAsync(userId, cartItems, couponCode, discountAmount);
+            if (!string.IsNullOrEmpty(couponCode))
+            {
+                var coupon = await _couponRepository.GetByCodeAsync(couponCode);
+                if (coupon != null)
+                {
+                    await _couponRepository.DescUsageLimitAsync(coupon.Id);
+                }
+            }
+            return orderId;
         }
         public async Task<IEnumerable<Order>> GetOrdersAsync(Guid userId)
         {
