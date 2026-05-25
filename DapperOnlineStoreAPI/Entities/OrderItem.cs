@@ -9,5 +9,6 @@
         public int Quantity { get; set; }
         public string? ImageUrl { get; set; }
         public List<string>? ImageUrls { get; set; }
+        public decimal OriginalPrice { get; set; }
     }
 }

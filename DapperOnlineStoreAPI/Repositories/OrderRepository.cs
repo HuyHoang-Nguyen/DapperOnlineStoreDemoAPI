@@ -30,18 +30,20 @@ namespace DapperOnlineStoreAPI.Repositories
             while (codeExists);
 
             var items = cartItems.ToList();
+            var subtotal = items.Sum(x => (x.DiscountPrice ?? x.Price) * x.Quantity);
             var order = new Order
             {
                 Id = Guid.NewGuid(),
                 Code = code,
                 UserId = userId,
-                TotalAmount = items.Sum(x => (x.DiscountPrice ?? x.Price) * x.Quantity),
+                Subtotal = subtotal,
+                TotalAmount = subtotal - discountAmount,
                 CouponCode = couponCode,
                 DiscountAmount = discountAmount,
                 Status = EnumOrderStatus.Created,
             };
-            var createOrderSql = "insert into Orders(Id, Code, UserId, TotalAmount, DiscountAmount, CouponCode, Status) " +
-                                 "values (@Id, @Code, @UserId, @TotalAmount, @DiscountAmount, @CouponCode, @Status) ";
+            var createOrderSql = "insert into Orders(Id, Code, UserId, Subtotal, TotalAmount, DiscountAmount, CouponCode, Status) " +
+                                 "values (@Id, @Code, @UserId, @Subtotal, @TotalAmount, @DiscountAmount, @CouponCode, @Status) ";
 
             await connection.ExecuteAsync(createOrderSql, order);
 
@@ -66,7 +68,7 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<IEnumerable<Order>> GetOrdersAsync(Guid userId)
         {
             using var connection = CreateConnection();
-            var sql = "select Id, Code, UserId, TotalAmount, Status, CreatedDate " +
+            var sql = "select Id, Code, UserId, Subtotal, TotalAmount, CouponCode, DiscountAmount, Status, CreatedDate " +
                       "from Orders " +
                       "where UserId = @UserId and IsDeleted = 0 " +
                       "order by CreatedDate desc ";
@@ -75,7 +77,7 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<Order?> GetByIdAsync(Guid orderId, Guid userId)
         {
             using var connection = CreateConnection();
-            var sql = "select Id, TotalAmount, Status, CreatedDate " +
+            var sql = "select Id, Code, UserId, Subtotal, TotalAmount, CouponCode, DiscountAmount, Status, CreatedDate " +
                       "from Orders " +
                       "where Id = @OrderId and UserId = @UserId and IsDeleted = 0 ";
             return await connection.QueryFirstOrDefaultAsync<Order>(sql, new { OrderId = orderId, UserId = userId });
@@ -83,7 +85,7 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<IEnumerable<OrderItem>> GetOrderItemsAsync(Guid orderId)
         {
             using var connection = CreateConnection();
-            var sql = "select oi.OrderId, oi.ProductId, oi.ProductName, oi.Price, oi.Quantity, p.ImageUrl " +
+            var sql = "select oi.OrderId, oi.ProductId, oi.ProductName, oi.Price, oi.Quantity, p.ImageUrl, p.Price as OriginalPrice " +
                       "from OrderItems oi " +
                       "join Products p on p.Id = oi.ProductId " +
                       "where oi.OrderId = @OrderId and oi.IsDeleted = 0 ";

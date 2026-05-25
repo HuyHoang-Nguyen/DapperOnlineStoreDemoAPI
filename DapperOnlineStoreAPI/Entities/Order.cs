@@ -11,6 +11,7 @@ namespace DapperOnlineStoreAPI.Entities
         public DateTime CreatedDate { get; set; }
         public string? Code { get; set; }
         public string? CouponCode { get; set; }
+        public decimal Subtotal { get; set; }
         public decimal? DiscountAmount { get; set; }
 
     }
