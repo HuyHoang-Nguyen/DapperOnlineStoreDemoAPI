@@ -33,7 +33,7 @@ namespace DapperOnlineStoreAPI.Services
             return await _productRepository.CreateAsync(p);
         }
         public async Task<IEnumerable<Product>> GetAllAsync()
-        {
+        {   
             return await _productRepository.GetAllAsync();
         }
         public async Task<Product?> GetByIdAsync(Guid id)
@@ -45,6 +45,12 @@ namespace DapperOnlineStoreAPI.Services
                 {
                     EnumProductValidationError.ProductNotFound.ToString(),
                 });
+            }
+            if (p.DiscountTime.HasValue && p.DiscountTime.Value < DateTime.Now)
+            {
+                p.Discount = null;
+                p.DiscountPrice = null;
+                p.DiscountTime = null;
             }
             return p;
         }

@@ -41,7 +41,7 @@ namespace DapperOnlineStoreAPI.Services
             if (!string.IsNullOrEmpty(couponCode))
             {
                 var cartTotal = cartItems.Sum(x => (x.DiscountPrice ?? x.Price) * x.Quantity);
-                var couponResult = await _couponService.ValidateAsync(couponCode, cartTotal);
+                var couponResult = await _couponService.ValidateAsync(couponCode, cartTotal, userId);
                 discountAmount = couponResult.DiscountAmount;
             }
 

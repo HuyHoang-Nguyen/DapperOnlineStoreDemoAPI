@@ -30,23 +30,24 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<Guid> CreateAsync(ProductModel p)
         {
             using var connection = CreateConnection();
-            var sql =   "insert into Products(CategoryId, Name, Price, Stock, Discount) " +
+            var sql =   "insert into Products(CategoryId, Name, Price, Stock, Discount, DiscountTime) " +
                 "       output inserted.Id " +
-                "       values(@CategoryId, @Name, @Price, @Stock, @Discount) ";
+                "       values(@CategoryId, @Name, @Price, @Stock, @Discount, @DiscountTime) ";
             var product = new
             {
                 p.CategoryId,
                 p.Name,
                 p.Price,
                 p.Stock,
-                p.Discount
+                p.Discount,
+                p.DiscountTime
             };
             return await connection.QuerySingleAsync<Guid>(sql, product);
         }
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             using var connection = CreateConnection();
-            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount " +
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountTime " +
                       " from Products p " +
                       " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
                       " where p.IsDeleted = 0 ";
@@ -64,12 +65,13 @@ namespace DapperOnlineStoreAPI.Repositories
                 ImageUrls = (p.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
                 Discount = p.Discount,
                 DiscountPrice = CalcDiscountedPrice(p.Price, p.Discount),
+                DiscountTime = p.DiscountTime,
             });
         }
         public async Task<Product?> GetByIdAsync(Guid id)
         {
             using var connection = CreateConnection();
-            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount " +
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountTime " +
                       " from Products p " +
                       " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
                       " where p.Id = @Id and p.IsDeleted = 0 ";
@@ -89,7 +91,8 @@ namespace DapperOnlineStoreAPI.Repositories
                 ImageUrl = product.ImageUrl,
                 ImageUrls = (product.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
                 Discount = product.Discount,
-                DiscountPrice = CalcDiscountedPrice(product.Price, product.Discount)
+                DiscountPrice = CalcDiscountedPrice(product.Price, product.Discount),
+                DiscountTime= product.DiscountTime,
             };
         }
         public async Task<int> UpdateAsync(Guid id, UpdateProductModel p)
@@ -100,7 +103,8 @@ namespace DapperOnlineStoreAPI.Repositories
                 "      Name = coalesce(@Name, Name), " +
                 "      Price = coalesce(@Price, Price), " +
                 "      Stock = coalesce(@Stock, Stock), " +
-                "      Discount = coalesce(@Discount, Discount) " +
+                "      Discount = coalesce(@Discount, Discount), " +
+                "      DiscountTime = coalesce(@DiscountTime, DiscountTime) " +
                 "      where Id = @Id and IsDeleted = 0 ";
             return await connection.ExecuteAsync(sql, new
             {
@@ -110,6 +114,7 @@ namespace DapperOnlineStoreAPI.Repositories
                 Price = p.Price,
                 Stock = p.Stock,
                 Discount = p.Discount,
+                DiscountTime = p.DiscountTime,
             });
         }
         public async Task<int> DeleteAsync(Guid id)
@@ -133,27 +138,24 @@ namespace DapperOnlineStoreAPI.Repositories
                 maxStock = maxStock,
             };
             var result = await connection.QueryAsync<GetProductQueryModel>("sp_SearchProduct", param, commandType: CommandType.StoredProcedure);
-            //var pagedResult = result.Select(p => new Product
-            //{
-            //    Id = p.Id,
-            //    CategoryId = p.CategoryId,
-            //    CategoryName = p.CategoryName,
-            //    Name = p.Name,
-            //    Price = p.Price,
-            //    Stock = p.Stock
-            //});
-            IEnumerable<Product> query = result.Select(p => new Product
+            IEnumerable<Product> query = result.Select(p =>
             {
-                Id = p.Id,
-                CategoryId = p.CategoryId,
-                CategoryName = p.CategoryName,
-                Name = p.Name,
-                Price = p.Price,
-                Stock = p.Stock,
-                ImageUrl = p.ImageUrl,
-                ImageUrls = (p.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
-                Discount = p.Discount,
-                DiscountPrice = CalcDiscountedPrice(p.Price, p.Discount)
+                var isExpired = p.DiscountTime.HasValue && p.DiscountTime.Value < DateTime.Now;
+
+                return new Product
+                {
+                    Id = p.Id,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.CategoryName,
+                    Name = p.Name,
+                    Price = p.Price,
+                    Stock = p.Stock,
+                    ImageUrl = p.ImageUrl,
+                    ImageUrls = (p.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    Discount = isExpired ? null : p.Discount,
+                    DiscountPrice = isExpired ? null : CalcDiscountedPrice(p.Price, p.Discount),
+                    DiscountTime = isExpired ? null : p.DiscountTime
+                };
             });
             var ascending = sortDir.ToLower() != "desc";
             query = query.OrderBy(p => p.Stock <= 0);

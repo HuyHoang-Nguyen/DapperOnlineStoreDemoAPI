@@ -13,9 +13,9 @@ namespace DapperOnlineStoreAPI.Controllers
             _couponService = couponService;
         }
         [HttpGet("validate")]
-        public async Task<IActionResult> Validate([FromQuery] string code, [FromQuery] decimal cartTotal)
+        public async Task<IActionResult> Validate([FromQuery] string code, [FromQuery] decimal cartTotal, [FromQuery] Guid userId)
         {
-            var result = await _couponService.ValidateAsync(code, cartTotal);
+            var result = await _couponService.ValidateAsync(code, cartTotal, userId);
             return Ok(result);
         }
     }

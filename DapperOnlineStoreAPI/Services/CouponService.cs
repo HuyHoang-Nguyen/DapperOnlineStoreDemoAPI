@@ -9,13 +9,16 @@ namespace DapperOnlineStoreAPI.Services
     public class CouponService : ICouponService
     {
         private readonly ICouponRepository _couponRepository;
-        public CouponService(ICouponRepository couponRepository)
+        private readonly ICartRepository _cartRepository;
+        public CouponService(ICouponRepository couponRepository, ICartRepository cartRepository)
         {
             _couponRepository = couponRepository;
+            _cartRepository = cartRepository;
         }
-        public async Task<CouponModel> ValidateAsync(string code, decimal cartTotal)
+        public async Task<CouponModel> ValidateAsync(string code, decimal cartTotal, Guid userId)
         {
             var coupon = await _couponRepository.GetByCodeAsync(code);
+            var cartItems = await _cartRepository.GetCart(userId);
             if (coupon == null)
             {
                 throw new ValidationException(new List<string>
@@ -30,7 +33,7 @@ namespace DapperOnlineStoreAPI.Services
                     EnumCouponValidationError.CouponInactive.ToString()
                 });
             }
-            if (coupon.ExpireDate.HasValue && coupon.ExpireDate < DateTime.UtcNow)
+            if (coupon.ExpireDate.HasValue && coupon.ExpireDate < DateTime.Now)
             {
                 throw new ValidationException(new List<string>
                 {
@@ -42,6 +45,31 @@ namespace DapperOnlineStoreAPI.Services
                 throw new ValidationException(new List<string>
                 {
                     EnumCouponValidationError.CouponLimitReached.ToString()
+                });
+            }
+            if (coupon.MinOrderAmount.HasValue && cartItems.Sum(i => i.Quantity) < coupon.MinOrderAmount.Value)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumCouponValidationError.CouponConditionNotMet.ToString()
+                });
+            }
+            if (coupon.CategoryId.HasValue)
+            {
+                var categoryCheck = cartItems.Any(i => i.CategoryId == coupon.CategoryId.Value);
+                if (!categoryCheck)
+                {
+                    throw new ValidationException(new List<string>
+                    { 
+                        EnumCouponValidationError.CouponConditionNotMet.ToString() 
+                    });
+                }
+            }
+            if (coupon.MinTotalAmount.HasValue && cartTotal < coupon.MinTotalAmount)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumCouponValidationError.CouponConditionNotMet.ToString()
                 });
             }
             var discountAmount = coupon.DiscountType == "Percentage" ? cartTotal * (coupon.DiscountValue / 100) : coupon.DiscountValue;

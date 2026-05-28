@@ -9,5 +9,8 @@
         public DateTime? ExpireDate { get; set; }
         public int? UsageLimit { get; set; }
         public bool IsActive { get; set; }
+        public int? MinOrderAmount { get; set; }
+        public Guid? CategoryId { get; set; }
+        public decimal? MinTotalAmount { get; set; }
     }
 }

@@ -12,7 +12,7 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<Coupon?> GetByCodeAsync(string code)
         {
             using var connection = CreateConnection();
-            var sql = "select Id, Code, DiscountType, DiscountValue, ExpireDate, UsageLimit, IsActive " +
+            var sql = "select Id, Code, DiscountType, DiscountValue, ExpireDate, UsageLimit, IsActive, MinOrderAmount, CategoryId, MinTotalAmount " +
                       "from Coupon where Code = @Code and IsDeleted = 0 ";
             return await connection.QueryFirstOrDefaultAsync<Coupon>(sql, new { Code = code });
         }

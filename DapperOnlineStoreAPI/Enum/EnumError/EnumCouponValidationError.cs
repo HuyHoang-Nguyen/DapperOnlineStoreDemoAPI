@@ -6,5 +6,6 @@
         CouponInactive,
         CouponExpired,
         CouponLimitReached,
+        CouponConditionNotMet,
     }
 }

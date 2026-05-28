@@ -12,5 +12,7 @@
         public List<string>? ImageUrls { get; set; }
         public decimal? Discount { get; set; }
         public decimal? DiscountPrice { get; set; }
+        public DateTime? DiscountStart { get; set; }
+        public DateTime? DiscountEnd { get; set; }
     }
 }

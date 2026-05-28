@@ -8,7 +8,6 @@ namespace DapperOnlineStoreAPI.Repositories
 {
     public class CartRepository : BaseRepository, ICartRepository
     {
-        //private static readonly Guid TestUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
         public CartRepository(IConfiguration configuration) : base(configuration)
         {
         }
