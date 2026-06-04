@@ -10,6 +10,9 @@
         StockInvalid,
         NameRequired,
         NameInvalid,
-        DiscountInvalid
+        DiscountInvalid,
+        EventDiscountInvalid,
+        EventDateInvalid,
+        ProductIdsRequired,
     }
 }

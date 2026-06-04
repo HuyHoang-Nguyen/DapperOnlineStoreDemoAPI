@@ -20,6 +20,13 @@ namespace DapperOnlineStoreAPI.Repositories
             }
             return Math.Round(price * (1 - discount.Value / 100), 0);
         }
+        private static bool IsDiscountActive(DateTime? start, DateTime? end)
+        {
+            if (start.HasValue && DateTime.Now < start.Value) return false;
+            if (end.HasValue && DateTime.Now > end.Value) return false;
+            return true;
+        }
+
         public async Task<bool> CategoryCheckAsync(Guid categoryId)
         {
             using var connection = CreateConnection();
@@ -30,9 +37,9 @@ namespace DapperOnlineStoreAPI.Repositories
         public async Task<Guid> CreateAsync(ProductModel p)
         {
             using var connection = CreateConnection();
-            var sql =   "insert into Products(CategoryId, Name, Price, Stock, Discount, DiscountTime) " +
+            var sql =   "insert into Products(CategoryId, Name, Price, Stock, Discount, DiscountStart, DiscountEnd) " +
                 "       output inserted.Id " +
-                "       values(@CategoryId, @Name, @Price, @Stock, @Discount, @DiscountTime) ";
+                "       values(@CategoryId, @Name, @Price, @Stock, @Discount, @DiscountStart, @DiscountEnd) ";
             var product = new
             {
                 p.CategoryId,
@@ -40,38 +47,53 @@ namespace DapperOnlineStoreAPI.Repositories
                 p.Price,
                 p.Stock,
                 p.Discount,
-                p.DiscountTime
+                p.DiscountStart,
+                p.DiscountEnd
             };
             return await connection.QuerySingleAsync<Guid>(sql, product);
         }
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             using var connection = CreateConnection();
-            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountTime " +
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.DiscountStart, p.DiscountEnd " +
                       " from Products p " +
                       " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
                       " where p.IsDeleted = 0 ";
             var product = await connection.QueryAsync<Product>(sql);
 
-            return product.Select(p => new Product
+            return product.Select(p =>
             {
-                Id = p.Id,
-                CategoryId = p.CategoryId,
-                CategoryName = p.CategoryName,
-                Name = p.Name,
-                Price = p.Price,
-                Stock = p.Stock,
-                ImageUrl = p.ImageUrl,
-                ImageUrls = (p.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
-                Discount = p.Discount,
-                DiscountPrice = CalcDiscountedPrice(p.Price, p.Discount),
-                DiscountTime = p.DiscountTime,
+                var eventActive = IsDiscountActive(p.EventStart, p.EventEnd) && p.EventDiscount.HasValue;
+                var discountActive = IsDiscountActive(p.DiscountStart, p.DiscountEnd) && p.Discount.HasValue;
+
+                var finalDiscount = eventActive ? p.EventDiscount : discountActive ? p.Discount : null;
+
+                var endDate = eventActive ? p.EventEnd : discountActive ? p.DiscountEnd : null;
+
+                return new Product
+                {
+                    Id = p.Id,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.CategoryName,
+                    Name = p.Name,
+                    Price = p.Price,
+                    Stock = p.Stock,
+                    ImageUrl = p.ImageUrl,
+                    ImageUrls = (p.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    Discount = finalDiscount,
+                    DiscountPrice = CalcDiscountedPrice(p.Price, finalDiscount),
+                    DiscountStart = p.DiscountStart,
+                    DiscountEnd = endDate,
+                    EventDiscount = p.EventDiscount,
+                    EventStart = p.EventStart,
+                    EventEnd = p.EventEnd,
+                };
             });
         }
         public async Task<Product?> GetByIdAsync(Guid id)
         {
             using var connection = CreateConnection();
-            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountTime " +
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.EventStart, p.EventEnd " +
                       " from Products p " +
                       " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
                       " where p.Id = @Id and p.IsDeleted = 0 ";
@@ -80,6 +102,13 @@ namespace DapperOnlineStoreAPI.Repositories
             {
                 return null;
             }
+            var eventActive = IsDiscountActive(product.EventStart, product.EventEnd) && product.EventDiscount.HasValue;
+            var discountActive = IsDiscountActive(product.DiscountStart, product.DiscountEnd) && product.Discount.HasValue;
+
+            var finalDiscount = eventActive ? product.EventDiscount : discountActive ? product.Discount : null;
+
+            var endDate = eventActive ? product.EventEnd : discountActive ? product.DiscountEnd : null;
+
             return new Product
             {
                 Id = product.Id,
@@ -90,9 +119,13 @@ namespace DapperOnlineStoreAPI.Repositories
                 Stock = product.Stock,
                 ImageUrl = product.ImageUrl,
                 ImageUrls = (product.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
-                Discount = product.Discount,
-                DiscountPrice = CalcDiscountedPrice(product.Price, product.Discount),
-                DiscountTime= product.DiscountTime,
+                Discount = finalDiscount,
+                DiscountPrice = CalcDiscountedPrice(product.Price, finalDiscount),
+                DiscountStart = product.DiscountStart,
+                DiscountEnd = endDate,
+                EventDiscount = product.EventDiscount,
+                EventStart = product.EventStart,
+                EventEnd = product.EventEnd,
             };
         }
         public async Task<int> UpdateAsync(Guid id, UpdateProductModel p)
@@ -104,7 +137,11 @@ namespace DapperOnlineStoreAPI.Repositories
                 "      Price = coalesce(@Price, Price), " +
                 "      Stock = coalesce(@Stock, Stock), " +
                 "      Discount = coalesce(@Discount, Discount), " +
-                "      DiscountTime = coalesce(@DiscountTime, DiscountTime) " +
+                "      DiscountStart = coalesce(@DiscountStart, DiscountStart), " +
+                "      DiscountEnd = coalesce(@DiscountEnd, DiscountEnd), " +
+                "      EventDiscount = coalesce(@EventDiscount, EventDiscount), " +
+                "      EventStart = coalesce(@EventStart, EventStart), " +
+                "      EventEnd = coalesce(@EventEnd, EventEnd) " +
                 "      where Id = @Id and IsDeleted = 0 ";
             return await connection.ExecuteAsync(sql, new
             {
@@ -114,7 +151,11 @@ namespace DapperOnlineStoreAPI.Repositories
                 Price = p.Price,
                 Stock = p.Stock,
                 Discount = p.Discount,
-                DiscountTime = p.DiscountTime,
+                DiscountStart = p.DiscountStart,
+                DiscountEnd = p.DiscountEnd,
+                EventDiscount = p.EventDiscount,
+                EventStart = p.EventStart,
+                EventEnd = p.EventEnd,
             });
         }
         public async Task<int> DeleteAsync(Guid id)
@@ -140,7 +181,12 @@ namespace DapperOnlineStoreAPI.Repositories
             var result = await connection.QueryAsync<GetProductQueryModel>("sp_SearchProduct", param, commandType: CommandType.StoredProcedure);
             IEnumerable<Product> query = result.Select(p =>
             {
-                var isExpired = p.DiscountTime.HasValue && p.DiscountTime.Value < DateTime.Now;
+                var eventActive = IsDiscountActive(p.EventStart, p.EventEnd) && p.EventDiscount.HasValue;
+                var discountActive = IsDiscountActive(p.DiscountStart, p.DiscountEnd) && p.Discount.HasValue;
+
+                var finalDiscount = eventActive ? p.EventDiscount : discountActive ? p.Discount : null;
+
+                var endDate = eventActive ? p.EventEnd : discountActive ? p.DiscountEnd : null;
 
                 return new Product
                 {
@@ -152,9 +198,13 @@ namespace DapperOnlineStoreAPI.Repositories
                     Stock = p.Stock,
                     ImageUrl = p.ImageUrl,
                     ImageUrls = (p.ImageUrl ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
-                    Discount = isExpired ? null : p.Discount,
-                    DiscountPrice = isExpired ? null : CalcDiscountedPrice(p.Price, p.Discount),
-                    DiscountTime = isExpired ? null : p.DiscountTime
+                    Discount = finalDiscount,
+                    DiscountPrice = CalcDiscountedPrice(p.Price, finalDiscount),
+                    DiscountStart = p.DiscountStart,
+                    DiscountEnd = endDate,
+                    EventDiscount = p.EventDiscount,
+                    EventStart = p.EventStart,
+                    EventEnd = p.EventEnd,
                 };
             });
             var ascending = sortDir.ToLower() != "desc";
@@ -232,6 +282,18 @@ namespace DapperOnlineStoreAPI.Repositories
             using var connection = CreateConnection();
             var sql = "select Stock from Products where Id = @Id and IsDeleted = 0 ";
             return await connection.QueryFirstOrDefaultAsync<int?>(sql, new { Id = id });
+        }
+
+        public async Task<int> BulkUpdateEventAsync(List<Guid> productIds, decimal eventDiscount, DateTime? eventStart, DateTime? eventEnd)
+        {
+            if (productIds == null || !productIds.Any()) return 0;
+            using var connection = CreateConnection();
+            var sql = "update Products " +
+                      "set EventDiscount = @EventDiscount, " +
+                      "    EventStart = @EventStart, " +
+                      "    EventEnd = @EventEnd " +
+                      "where Id in @Ids and IsDeleted = 0";
+            return await connection.ExecuteAsync(sql, new {EventDiscount = eventDiscount, EventStart = eventStart, EventEnd = eventEnd, Ids = productIds });
         }
     }
 }

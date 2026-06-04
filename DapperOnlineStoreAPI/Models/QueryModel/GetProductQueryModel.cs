@@ -12,5 +12,8 @@
         public decimal? Discount { get; set; }
         public DateTime? DiscountStart { get; set; }
         public DateTime? DiscountEnd { get; set; }
+        public decimal? EventDiscount { get; set; }
+        public DateTime? EventStart { get; set; }
+        public DateTime? EventEnd { get; set; }
     }
 }

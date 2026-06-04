@@ -50,5 +50,11 @@ namespace DapperOnlineStoreAPI.Controllers
             var result = await _productService.SearchAsync(keyword, categoryId, minPrice, maxPrice, minStock, maxStock, page, pageSize, sortBy, sortDir);
             return Ok(result);
         }
+        [HttpPut("event")]
+        public async Task<IActionResult> BulkUpdateEvent([FromBody] BulkEventModel p)
+        {
+            var result = await _productService.BulkUpdateEventAsync(p);
+            return Ok(result);
+        }
     }
 }

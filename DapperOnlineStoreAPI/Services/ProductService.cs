@@ -3,7 +3,6 @@ using DapperOnlineStoreAPI.Enum.EnumError;
 using DapperOnlineStoreAPI.GlobalExceptionHandler;
 using DapperOnlineStoreAPI.IRepositories;
 using DapperOnlineStoreAPI.Models;
-using DapperOnlineStoreAPI.Repositories;
 using DapperOnlineStoreAPI.Services.Interfaces;
 using DapperOnlineStoreAPI.Validators;
 
@@ -12,7 +11,7 @@ namespace DapperOnlineStoreAPI.Services
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
-        public ProductService(IProductRepository productRepository) 
+        public ProductService(IProductRepository productRepository)
         {
             _productRepository = productRepository;
         }
@@ -33,7 +32,7 @@ namespace DapperOnlineStoreAPI.Services
             return await _productRepository.CreateAsync(p);
         }
         public async Task<IEnumerable<Product>> GetAllAsync()
-        {   
+        {
             return await _productRepository.GetAllAsync();
         }
         public async Task<Product?> GetByIdAsync(Guid id)
@@ -45,12 +44,6 @@ namespace DapperOnlineStoreAPI.Services
                 {
                     EnumProductValidationError.ProductNotFound.ToString(),
                 });
-            }
-            if (p.DiscountTime.HasValue && p.DiscountTime.Value < DateTime.Now)
-            {
-                p.Discount = null;
-                p.DiscountPrice = null;
-                p.DiscountTime = null;
             }
             return p;
         }
@@ -82,7 +75,7 @@ namespace DapperOnlineStoreAPI.Services
         }
         public async Task<int> DeleteAsync(Guid id)
         {
-            var exists =  await _productRepository.GetByIdAsync(id);
+            var exists = await _productRepository.GetByIdAsync(id);
             if (exists == null)
             {
                 throw new ValidationException(new List<string>
@@ -109,6 +102,37 @@ namespace DapperOnlineStoreAPI.Services
             sortBy = sortBy?.ToLower() ?? "id";
             sortDir = sortDir?.ToLower() ?? "asc";
             return await _productRepository.SearchAsync(keyword, categoryId, minPrice, maxPrice, minStock, maxStock, page, pageSize, sortBy, sortDir);
+        }
+
+        public async Task<int> BulkUpdateEventAsync(BulkEventModel p)
+        {
+            var errors = new List<string>();
+            if (p.ProductIds == null || !p.ProductIds.Any())
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumProductValidationError.ProductIdsRequired.ToString()
+                });
+            }
+            if (p.EventDiscount <= 0 || p.EventDiscount >= 100)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumProductValidationError.EventDiscountInvalid.ToString()
+                });
+            }
+            if (p.EventStart.HasValue && p.EventEnd.HasValue && (p.EventStart.Value >= p.EventEnd.Value))
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumProductValidationError.EventDateInvalid.ToString()
+                });
+            }
+            if (errors.Any())
+            {
+                throw new ValidationException(errors);
+            }
+            return await _productRepository.BulkUpdateEventAsync(p.ProductIds, p.EventDiscount, p.EventStart, p.EventEnd);
         }
     }
 }
