@@ -1,9 +1,12 @@
-﻿namespace DapperOnlineStoreAPI.Enum
+﻿using System.Text.Json.Serialization;
+
+namespace DapperOnlineStoreAPI.Enum
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum EnumOrderStatus
     {
         Created = 1,
-        Completed = 2,
+        Paid = 2,
         Cancelled = 3,
     }
 }

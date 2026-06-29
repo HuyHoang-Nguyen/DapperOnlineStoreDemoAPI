@@ -10,8 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddSwaggerGen(c =>
+{
+    c.UseInlineDefinitionsForEnums();
+});
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -19,14 +22,16 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();    
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddCors(options =>
 {

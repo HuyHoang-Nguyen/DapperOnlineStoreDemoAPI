@@ -1,4 +1,6 @@
-﻿using DapperOnlineStoreAPI.Services.Interfaces;
+﻿using DapperOnlineStoreAPI.Enum;
+using DapperOnlineStoreAPI.IRepositories;
+using DapperOnlineStoreAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DapperOnlineStoreAPI.Controllers
@@ -8,9 +10,11 @@ namespace DapperOnlineStoreAPI.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
-        public OrderController(IOrderService orderService)
+        private readonly IOrderRepository _orderRepository;
+        public OrderController(IOrderService orderService, IOrderRepository orderRepository)
         {
             _orderService = orderService;
+            _orderRepository = orderRepository;
         }
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout([FromQuery] Guid userId, [FromQuery] string? couponCode)
@@ -34,6 +38,12 @@ namespace DapperOnlineStoreAPI.Controllers
         public async Task<IActionResult> DeleteOrder(Guid orderId, Guid userId)
         {
             await _orderService.DeleteOrderAsync(orderId, userId);
+            return NoContent();
+        }
+        [HttpPut("{orderId}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(Guid orderId, [FromQuery] EnumOrderStatus status)
+        {
+            await _orderRepository.UpdateOrderStatusAsync(orderId, status);
             return NoContent();
         }
     }

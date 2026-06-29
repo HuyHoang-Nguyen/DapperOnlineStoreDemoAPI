@@ -45,7 +45,7 @@ namespace DapperOnlineStoreAPI.Services
                 discountAmount = couponResult.DiscountAmount;
             }
 
-            var orderId = await _orderRepository.CreateOrderAsync(userId, cartItems, couponCode, discountAmount);
+            var order = await _orderRepository.CreateOrderAsync(userId, cartItems, couponCode, discountAmount);
             if (!string.IsNullOrEmpty(couponCode))
             {
                 var coupon = await _couponRepository.GetByCodeAsync(couponCode);
@@ -54,7 +54,7 @@ namespace DapperOnlineStoreAPI.Services
                     await _couponRepository.DescUsageLimitAsync(coupon.Id);
                 }
             }
-            return orderId;
+            return order.Id;
         }
         public async Task<IEnumerable<Order>> GetOrdersAsync(Guid userId)
         {

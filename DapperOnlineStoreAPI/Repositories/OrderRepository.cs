@@ -12,7 +12,7 @@ namespace DapperOnlineStoreAPI.Repositories
         public OrderRepository(IConfiguration configuration) : base(configuration)
         {
         }
-        public async Task<Guid> CreateOrderAsync (Guid userId, IEnumerable<CartItemsModel> cartItems, string? couponCode , decimal discountAmount)
+        public async Task<Order> CreateOrderAsync (Guid userId, IEnumerable<CartItemsModel> cartItems, string? couponCode , decimal discountAmount)
         {
             using var connection = CreateConnection();
             const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -63,7 +63,7 @@ namespace DapperOnlineStoreAPI.Repositories
                                  "set Stock = Stock - @Quantity " +
                                  "where Id = @ProductId and IsDeleted = 0";
             await connection.ExecuteAsync(updateStockSql, orderItems);
-            return order.Id;
+            return order;
         }
         public async Task<IEnumerable<Order>> GetOrdersAsync(Guid userId)
         {
@@ -107,6 +107,12 @@ namespace DapperOnlineStoreAPI.Repositories
             var sql = "select top 1 1 from Orders where Code = @Code ";
             var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { Code = code });
             return result.HasValue;
+        }
+        public async Task UpdateOrderStatusAsync(Guid orderId, EnumOrderStatus status)
+        {
+            using var connection = CreateConnection();
+            var sql = "update Orders set Status = @Status where Id = @OrderId and IsDeleted = 0 ";
+            await connection.ExecuteAsync(sql, new { OrderId = orderId, Status = status });
         }
     }
 }
