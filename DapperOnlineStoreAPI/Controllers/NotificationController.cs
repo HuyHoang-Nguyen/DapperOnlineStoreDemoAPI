@@ -1,10 +1,12 @@
 ﻿using DapperOnlineStoreAPI.Models;
-using DapperOnlineStoreAPI.Services;
 using DapperOnlineStoreAPI.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DapperOnlineStoreAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class NotificationController : ControllerBase
@@ -14,15 +16,22 @@ namespace DapperOnlineStoreAPI.Controllers
         {
             _notificationService = notificationService;
         }
+        private Guid GetUserId()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return Guid.Parse(idClaim);
+        }
         [HttpPost]
         public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationModel n)
         {
-            await _notificationService.CreateAsync(n.UserId, n.Message, n.ExpireDate);
+            var userId = GetUserId();
+            await _notificationService.CreateAsync(userId, n.Message, n.ExpireDate);
             return Ok();
         }
         [HttpGet]
-        public async Task<IActionResult> GetNotifs([FromQuery] Guid userId)
+        public async Task<IActionResult> GetNotifs()
         {
+            var userId = GetUserId();
             var notifs = await _notificationService.GetByUserIdAsync(userId);
             return Ok(notifs);
         }
@@ -33,8 +42,9 @@ namespace DapperOnlineStoreAPI.Controllers
             return Ok();
         }
         [HttpPut("read-all")]    
-        public async Task<IActionResult> MarkAllRead(Guid userId)
+        public async Task<IActionResult> MarkAllRead()
         {
+            var userId = GetUserId();
             await _notificationService.MarkAllReadAsync(userId);
             return Ok();
         }

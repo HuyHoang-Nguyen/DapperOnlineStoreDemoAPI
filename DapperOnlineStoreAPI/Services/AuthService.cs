@@ -9,9 +9,11 @@ namespace DapperOnlineStoreAPI.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
-        public AuthService(IUserRepository userRepository)
+        private readonly IJwtService _jwtService;
+        public AuthService(IUserRepository userRepository, IJwtService jwtService)
         {
             _userRepository = userRepository;
+            _jwtService = jwtService;
         }
         public async Task<UserLoginModel?> LoginAsync(string email, string password)
         {
@@ -30,11 +32,13 @@ namespace DapperOnlineStoreAPI.Services
                     EnumLoggingValidationError.LoginFailed.ToString()
                 });
             }
+            var token = _jwtService.GenerateToken(user.Id, user.Email);
             return new UserLoginModel
             {
                 Id = user.Id,
                 Email = email,
-            };
+                Token = token
+            };           
         }
     }
 }

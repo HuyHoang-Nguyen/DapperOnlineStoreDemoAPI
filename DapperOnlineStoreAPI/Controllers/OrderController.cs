@@ -1,10 +1,13 @@
 ﻿using DapperOnlineStoreAPI.Enum;
 using DapperOnlineStoreAPI.IRepositories;
 using DapperOnlineStoreAPI.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DapperOnlineStoreAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class OrderController : ControllerBase
@@ -16,15 +19,22 @@ namespace DapperOnlineStoreAPI.Controllers
             _orderService = orderService;
             _orderRepository = orderRepository;
         }
-        [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout([FromQuery] Guid userId, [FromQuery] string? couponCode)
+        private Guid GetUserId()
         {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return Guid.Parse(idClaim);
+        }
+        [HttpPost("checkout")]
+        public async Task<IActionResult> Checkout([FromQuery] string? couponCode)
+        {
+            var userId = GetUserId();
             var result = await _orderService.OrderCheckoutAsync(userId, couponCode);
             return Ok(result);
         }
         [HttpGet]
-        public async Task<IActionResult> GetOrders([FromQuery] Guid userId)
+        public async Task<IActionResult> GetOrders()
         {
+            var userId = GetUserId();
             var result = await _orderService.GetOrdersAsync(userId);
             return Ok(result);
         }
@@ -35,8 +45,9 @@ namespace DapperOnlineStoreAPI.Controllers
             return Ok(result);
         }
         [HttpDelete("{orderId}")]
-        public async Task<IActionResult> DeleteOrder(Guid orderId, Guid userId)
+        public async Task<IActionResult> DeleteOrder(Guid orderId)
         {
+            var userId = GetUserId();
             await _orderService.DeleteOrderAsync(orderId, userId);
             return NoContent();
         }
