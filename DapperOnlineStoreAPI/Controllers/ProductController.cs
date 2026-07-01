@@ -1,6 +1,5 @@
-﻿using DapperOnlineStoreAPI.Entities;
-using DapperOnlineStoreAPI.Models;
-using DapperOnlineStoreAPI.Services.Interfaces;
+﻿using Demo.Domain.Models;
+using Demo.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DapperOnlineStoreAPI.Controllers

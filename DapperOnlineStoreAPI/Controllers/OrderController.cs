@@ -1,6 +1,6 @@
-﻿using DapperOnlineStoreAPI.Enum;
-using DapperOnlineStoreAPI.IRepositories;
-using DapperOnlineStoreAPI.Services.Interfaces;
+﻿using Demo.Domain.Enum;
+using Demo.Domain.IRepositories;
+using Demo.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

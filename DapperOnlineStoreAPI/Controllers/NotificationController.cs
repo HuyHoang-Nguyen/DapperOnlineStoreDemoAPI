@@ -1,5 +1,5 @@
-﻿using DapperOnlineStoreAPI.Models;
-using DapperOnlineStoreAPI.Services.Interfaces;
+﻿using Demo.Domain.Models;
+using Demo.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

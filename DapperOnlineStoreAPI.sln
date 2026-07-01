@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{02
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authentication", "Authentication\Authentication.csproj", "{2A254AAE-10FA-4A95-9FD9-5C9D2B5831BE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.Domain", "Demo.Domain\Demo.Domain.csproj", "{519D114F-125C-4AF9-AE31-66223892B4FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{2A254AAE-10FA-4A95-9FD9-5C9D2B5831BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A254AAE-10FA-4A95-9FD9-5C9D2B5831BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A254AAE-10FA-4A95-9FD9-5C9D2B5831BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{519D114F-125C-4AF9-AE31-66223892B4FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{519D114F-125C-4AF9-AE31-66223892B4FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{519D114F-125C-4AF9-AE31-66223892B4FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{519D114F-125C-4AF9-AE31-66223892B4FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,6 +36,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{49D71D88-81FB-494B-955E-D46D4F8D11F4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{2A254AAE-10FA-4A95-9FD9-5C9D2B5831BE} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{519D114F-125C-4AF9-AE31-66223892B4FD} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B268A25F-BE2F-41CC-884F-0218AD0B9C21}
