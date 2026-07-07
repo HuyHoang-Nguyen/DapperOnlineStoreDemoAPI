@@ -4,6 +4,7 @@ namespace Demo.Domain.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<UserLoginModel?> LoginAsync(string email, string password);
+        Task LoginAsync(string email, string password);
+        Task<UserLoginModel?> VerifyOTPAsync(string email, string code);
     }
 }

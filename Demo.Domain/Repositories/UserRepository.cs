@@ -42,7 +42,8 @@ namespace Demo.Domain.Repositories
             {
                 Id = us.Id,
                 Email = us.Email,
-                Password = us.Password
+                Password = us.Password,
+                Role = us.Role,
             });
         }
         public async Task<User?> GetByIdAsync(Guid id)
@@ -58,7 +59,8 @@ namespace Demo.Domain.Repositories
             {
                 Id = u.Id,
                 Email = u.Email,
-                Password = u.Password
+                Password = u.Password,
+                Role = u.Role
             };
         }
         public async Task<int> UpdateAsync(Guid id, UpdateUserModel u)
@@ -83,7 +85,7 @@ namespace Demo.Domain.Repositories
         public async Task<User?> GetByEmailAsync(string email)
         {
             using var connection = CreateConnection();
-            var sql = "select Id, Email, Password from Users where Email = @Email ";
+            var sql = "select Id, Email, Password, Role from Users where Email = @Email ";
             return await connection.QueryFirstOrDefaultAsync<User>(sql, new { Email = email });
         }
     }

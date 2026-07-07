@@ -1,5 +1,6 @@
 ﻿using Demo.Domain.Models;
 using Demo.Domain.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DapperOnlineStoreAPI.Controllers
@@ -13,6 +14,7 @@ namespace DapperOnlineStoreAPI.Controllers
         {
             _productService = productService;
         }
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ProductModel p)
         {
@@ -31,12 +33,14 @@ namespace DapperOnlineStoreAPI.Controllers
             var result = await _productService.GetByIdAsync(id);
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateProductModel p)
         {
             await _productService.UpdateAsync(id, p);
             return NoContent();
         }
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -49,6 +53,7 @@ namespace DapperOnlineStoreAPI.Controllers
             var result = await _productService.SearchAsync(keyword, categoryId, minPrice, maxPrice, minStock, maxStock, page, pageSize, sortBy, sortDir);
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
         [HttpPut("event")]
         public async Task<IActionResult> BulkUpdateEvent([FromBody] BulkEventModel p)
         {
