@@ -134,5 +134,9 @@ namespace Demo.Domain.Services
             }
             return await _productRepository.BulkUpdateEventAsync(p.ProductIds, p.EventDiscount, p.EventStart, p.EventEnd);
         }
+        public async Task<int> IncreaseViewCountAsync(Guid id)
+        {
+            return await _productRepository.IncreaseViewCountAsync(id);
+        }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using Demo.Domain.Entities;
 using Demo.Domain.IRepositories;
-using Demo.Domain.Models;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 

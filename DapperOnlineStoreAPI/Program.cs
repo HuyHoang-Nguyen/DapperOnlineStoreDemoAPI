@@ -1,10 +1,14 @@
+using Demo.Domain.Consumer;
 using Demo.Domain.GlobalExceptionHandler;
 using Demo.Domain.IRepositories;
+using Demo.Domain.Models;
+using Demo.Domain.Publisher;
 using Demo.Domain.Repositories;
 using Demo.Domain.Services;
 using Demo.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using RabbitMQ.Client;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +43,32 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.Configure<RabbitMqSettings>(
+    builder.Configuration.GetSection("RabbitMQ"));
+
+builder.Services.AddSingleton<IQueueProvider, RabbitMqQueueProvider>();
+
+builder.Services.AddSingleton<ConnectionFactory>(sp =>
+{
+    return new ConnectionFactory
+    {
+        HostName = "localhost",
+        Port = 5672,
+        UserName = "guest",
+        Password = "guest"
+    };
+});
+
+
+builder.Services.AddSingleton<IQueueProvider, RabbitMqQueueProvider>();
+
+
+builder.Services.AddScoped<ProductConsumer>();
+builder.Services.AddScoped<ProductPublisher>();
+
+builder.Services.AddHostedService<ProductConsumerWorker>();
+
+
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -51,6 +81,9 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+
+
+
 
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

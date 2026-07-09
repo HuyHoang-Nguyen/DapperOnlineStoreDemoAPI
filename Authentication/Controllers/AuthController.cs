@@ -1,4 +1,5 @@
 ﻿using Demo.Domain.Models;
+using Demo.Domain.Publisher;
 using Demo.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

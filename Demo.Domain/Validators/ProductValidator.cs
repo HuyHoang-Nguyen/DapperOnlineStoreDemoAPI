@@ -1,4 +1,5 @@
-﻿using Demo.Domain.Enum.EnumError;
+﻿using Demo.Domain.Entities;
+using Demo.Domain.Enum.EnumError;
 using Demo.Domain.Models;
 
 namespace Demo.Domain.Validators

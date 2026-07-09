@@ -1,4 +1,6 @@
-﻿using Demo.Domain.Models;
+﻿using Demo.Domain.Entities;
+using Demo.Domain.Models;
+using Demo.Domain.Publisher;
 using Demo.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +12,13 @@ namespace DapperOnlineStoreAPI.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        public ProductController(IProductService productService)
+        private readonly ProductPublisher _productPublisher;
+        public ProductController(IProductService productService, ProductPublisher productPublisher)
         {
             _productService = productService;
+            _productPublisher = productPublisher;
         }
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Merchant")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ProductModel p)
         {
@@ -31,16 +35,20 @@ namespace DapperOnlineStoreAPI.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _productService.GetByIdAsync(id);
+            _productPublisher.PublishView(new TestRabbit()
+            {
+                Id = id
+            });
             return Ok(result);
         }
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Merchant")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateProductModel p)
         {
             await _productService.UpdateAsync(id, p);
             return NoContent();
         }
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Merchant")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -53,7 +61,7 @@ namespace DapperOnlineStoreAPI.Controllers
             var result = await _productService.SearchAsync(keyword, categoryId, minPrice, maxPrice, minStock, maxStock, page, pageSize, sortBy, sortDir);
             return Ok(result);
         }
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Merchant")]
         [HttpPut("event")]
         public async Task<IActionResult> BulkUpdateEvent([FromBody] BulkEventModel p)
         {

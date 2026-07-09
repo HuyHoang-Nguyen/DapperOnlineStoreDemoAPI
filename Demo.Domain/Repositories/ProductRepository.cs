@@ -56,7 +56,7 @@ namespace Demo.Domain.Repositories
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             using var connection = CreateConnection();
-            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.DiscountStart, p.DiscountEnd " +
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.DiscountStart, p.DiscountEnd, p.ViewCount " +
                       " from Products p " +
                       " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
                       " where p.IsDeleted = 0 ";
@@ -88,13 +88,14 @@ namespace Demo.Domain.Repositories
                     EventDiscount = p.EventDiscount,
                     EventStart = p.EventStart,
                     EventEnd = p.EventEnd,
+                    ViewCount = p.ViewCount,
                 };
             });
         }
         public async Task<Product?> GetByIdAsync(Guid id)
         {
             using var connection = CreateConnection();
-            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.EventStart, p.EventEnd " +
+            var sql = " select p.Id, p.CategoryId, c.Name as CategoryName, p.Name, p.Price, p.Stock, p.ImageURL, p.Discount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.DiscountStart, p.DiscountEnd, p.EventDiscount, p.EventStart, p.EventEnd, p.ViewCount " +
                       " from Products p " +
                       " left join Categories c on c.Id = p.CategoryId and c.IsDeleted = 0 " +
                       " where p.Id = @Id and p.IsDeleted = 0 ";
@@ -127,6 +128,7 @@ namespace Demo.Domain.Repositories
                 EventDiscount = product.EventDiscount,
                 EventStart = product.EventStart,
                 EventEnd = product.EventEnd,
+                ViewCount = product.ViewCount,
             };
         }
         public async Task<int> UpdateAsync(Guid id, UpdateProductModel p)
@@ -295,6 +297,12 @@ namespace Demo.Domain.Repositories
                       "    EventEnd = @EventEnd " +
                       "where Id in @Ids and IsDeleted = 0";
             return await connection.ExecuteAsync(sql, new {EventDiscount = eventDiscount, EventStart = eventStart, EventEnd = eventEnd, Ids = productIds });
+        }
+        public async Task<int> IncreaseViewCountAsync(Guid id)
+        {
+            using var connection = CreateConnection();
+            var sql = "update Products set ViewCount = ViewCount + 1 where @Id = Id and IsDeleted = 0";
+            return await connection.ExecuteAsync(sql, new { Id = id });
         }
     }
 }
