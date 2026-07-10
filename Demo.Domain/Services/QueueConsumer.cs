@@ -1,4 +1,6 @@
-﻿namespace Demo.Domain.Services
+﻿using Demo.Domain.Services.Interfaces;
+
+namespace Demo.Domain.Services
 {
     public abstract class QueueConsumer<T>
     {

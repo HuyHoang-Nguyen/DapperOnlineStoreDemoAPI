@@ -10,20 +10,17 @@ namespace DapperOnlineStoreAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IUserService _userService;
-        private readonly IOTPService _otpService;
-        private readonly IJwtService _jwtService;
-        public AuthController(IAuthService authService, IUserService userService, IOTPService otpService, IJwtService jwtService)
+        private readonly OTPPublisher _otpPublisher;
+        public AuthController(IAuthService authService, OTPPublisher otpPublisher)
         {
             _authService = authService;
-            _userService = userService;
-            _otpService = otpService;
-            _jwtService = jwtService;
+            _otpPublisher = otpPublisher;
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel login)
         {
-            await _authService.LoginAsync(login.Email, login.Password);
+            var code = await _authService.LoginAsync(login.Email, login.Password);
+            _otpPublisher.PublishView(new OTPRabbit { Email = login.Email, Code = code });
             return Ok(new { email = login.Email, otpRequired = true});
         }
         [HttpPost("verify-otp")]

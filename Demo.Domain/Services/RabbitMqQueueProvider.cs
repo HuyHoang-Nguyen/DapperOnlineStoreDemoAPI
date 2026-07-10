@@ -1,4 +1,4 @@
-﻿using Demo.Domain.Services;
+﻿using Demo.Domain.Services.Interfaces;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;

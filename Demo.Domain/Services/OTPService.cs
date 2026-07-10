@@ -13,13 +13,13 @@ namespace Demo.Domain.Services
             _otpRepository = otpRepository;
             _emailService = emailService;
         }
-        public async Task GenerateOTPAsync(string email)
+        public async Task<string> GenerateOTPAsync(string email)
         {
             var code = Random.Shared.Next(100000, 999999).ToString();
             var expireAt = DateTime.Now.AddMinutes(10);
 
             await _otpRepository.CreateAsync(email, code, expireAt);
-            await _emailService.SendOTPAsync(email, code);
+            return code;
         }
         public async Task<bool> ValidateAsync(string email, string code)
         {

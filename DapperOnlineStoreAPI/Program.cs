@@ -6,6 +6,7 @@ using Demo.Domain.Publisher;
 using Demo.Domain.Repositories;
 using Demo.Domain.Services;
 using Demo.Domain.Services.Interfaces;
+using Demo.Domain.Services.Workers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
@@ -62,12 +63,13 @@ builder.Services.AddSingleton<ConnectionFactory>(sp =>
 
 builder.Services.AddSingleton<IQueueProvider, RabbitMqQueueProvider>();
 
-
 builder.Services.AddScoped<ProductConsumer>();
+
+
 builder.Services.AddScoped<ProductPublisher>();
 
-builder.Services.AddHostedService<ProductConsumerWorker>();
 
+builder.Services.AddHostedService<ProductConsumerWorker>();
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
@@ -81,10 +83,6 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
-
-
-
-
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

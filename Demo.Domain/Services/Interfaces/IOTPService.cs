@@ -2,7 +2,7 @@
 {
     public interface IOTPService
     {
-        Task GenerateOTPAsync(string email);
+        Task<string> GenerateOTPAsync(string email);
         Task<bool> ValidateAsync(string email, string code);
     }
 }

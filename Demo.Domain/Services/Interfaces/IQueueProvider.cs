@@ -1,4 +1,4 @@
-﻿namespace Demo.Domain.Services
+﻿namespace Demo.Domain.Services.Interfaces
 {
     public interface IQueueProvider
     {

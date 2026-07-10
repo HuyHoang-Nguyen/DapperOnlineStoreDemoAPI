@@ -1,6 +1,7 @@
 ﻿using Demo.Domain.IRepositories;
 using Demo.Domain.Publisher;
 using Demo.Domain.Services;
+using Demo.Domain.Services.Interfaces;
 
 namespace Demo.Domain.Consumer
 {

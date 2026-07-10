@@ -17,24 +17,27 @@ namespace Demo.Domain.Services
             _jwtService = jwtService;
             _otpService = otpService;
         }
-        public async Task LoginAsync(string email, string password)
+        public async Task<string> LoginAsync(string email, string password)
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
                 throw new ValidationException(new List<string>
-        {
-            EnumLoggingValidationError.LoginFailed.ToString()
-        });
+                {
+                    EnumLoggingValidationError.LoginFailed.ToString()
+                });
             }
             var user = await _userRepository.GetByEmailAsync(email);
             if (user == null || user.Password != password)
             {
                 throw new ValidationException(new List<string>
-        {
-            EnumLoggingValidationError.LoginFailed.ToString()
-        });
+                {
+                    EnumLoggingValidationError.LoginFailed.ToString()
+                });
             }
             await _otpService.GenerateOTPAsync(email);
+
+            var code = await _otpService.GenerateOTPAsync(email);
+            return code;
         }
         public async Task<UserLoginModel?> VerifyOTPAsync(string email, string code)
         {
@@ -42,18 +45,18 @@ namespace Demo.Domain.Services
             if (!isValid)
             {
                 throw new ValidationException(new List<string>
-        {
-            EnumLoggingValidationError.LoginFailed.ToString()
-        });
+                {
+                    EnumLoggingValidationError.LoginFailed.ToString()
+                });
             }
 
             var user = await _userRepository.GetByEmailAsync(email);
             if (user == null)
             {
                 throw new ValidationException(new List<string>
-        {
-            EnumLoggingValidationError.LoginFailed.ToString()
-        });
+                {
+                    EnumLoggingValidationError.LoginFailed.ToString()
+                });
             }
 
             IList<string>? roles = user.Role != null ? new List<string> { user.Role } : null;

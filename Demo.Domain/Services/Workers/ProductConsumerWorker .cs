@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Demo.Domain.Services
+namespace Demo.Domain.Services.Workers
 {
     public class ProductConsumerWorker : BackgroundService
     {
@@ -13,7 +13,7 @@ namespace Demo.Domain.Services
             _scopeFactory = scopeFactory;
         }
         protected override async Task ExecuteAsync(
-            CancellationToken stoppingToken)
+            CancellationToken cancellationToken)
         {
             using var scope =
                 _scopeFactory.CreateScope();
