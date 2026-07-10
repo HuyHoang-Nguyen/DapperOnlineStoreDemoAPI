@@ -1,5 +1,4 @@
 ﻿using Demo.Domain.Models;
-using Demo.Domain.Publisher;
 using Demo.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,17 +6,15 @@ using System.Security.Claims;
 
 namespace DapperOnlineStoreAPI.Controllers
 {
-    [AllowAnonymous]
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
-        private readonly ProductPublisher _productPublisher;
-        public CartController(ICartService cartService, ProductPublisher productPublisher)
+        public CartController(ICartService cartService)
         {
             _cartService = cartService;
-            _productPublisher = productPublisher;
         }
         private Guid GetUserId()
         {

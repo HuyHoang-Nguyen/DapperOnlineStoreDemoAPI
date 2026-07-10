@@ -12,10 +12,10 @@ namespace Demo.Domain.Services.Workers
             _scopeFactory = scopeFactory;
         }
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-        {
+        {          
             using var scope = _scopeFactory.CreateScope();
-            var consumer = scope.ServiceProvider.GetRequiredService<ProductConsumer>();
-            await consumer.Start("order_view_queue");
+            var consumer = scope.ServiceProvider.GetRequiredService<OrderConsumer>();
+            await consumer.Start("order_view_queue");        
         }
     }
 }

@@ -64,12 +64,14 @@ builder.Services.AddSingleton<ConnectionFactory>(sp =>
 builder.Services.AddSingleton<IQueueProvider, RabbitMqQueueProvider>();
 
 builder.Services.AddScoped<ProductConsumer>();
-
+builder.Services.AddScoped<OrderConsumer>();
 
 builder.Services.AddScoped<ProductPublisher>();
+builder.Services.AddScoped<OrderPublisher>();
 
 
 builder.Services.AddHostedService<ProductConsumerWorker>();
+builder.Services.AddHostedService<OrderConsumerWorker>();
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();

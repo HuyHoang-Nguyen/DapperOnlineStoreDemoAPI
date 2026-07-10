@@ -1,5 +1,6 @@
 ﻿using Demo.Domain.Enum;
 using Demo.Domain.IRepositories;
+using Demo.Domain.Publisher;
 using Demo.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +15,14 @@ namespace DapperOnlineStoreAPI.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly IOrderRepository _orderRepository;
-        public OrderController(IOrderService orderService, IOrderRepository orderRepository)
+        private readonly OrderPublisher _orderPublisher;
+        private readonly ICartRepository _cartRepository;
+        public OrderController(IOrderService orderService, IOrderRepository orderRepository, OrderPublisher orderPublisher, ICartRepository cartRepository)
         {
             _orderService = orderService;
             _orderRepository = orderRepository;
+            _orderPublisher = orderPublisher;
+            _cartRepository = cartRepository;
         }
         private Guid GetUserId()
         {
@@ -28,8 +33,9 @@ namespace DapperOnlineStoreAPI.Controllers
         public async Task<IActionResult> Checkout([FromQuery] string? couponCode)
         {
             var userId = GetUserId();
-            var result = await _orderService.OrderCheckoutAsync(userId, couponCode);
-            return Ok(result);
+            var cartItems = await _cartRepository.GetCart(userId);
+            _orderPublisher.PublishView(new OrderRabbit { UserId = userId, CouponCode = couponCode, CartItems = cartItems.ToList()});
+            return Accepted();
         }
         [HttpGet]
         public async Task<IActionResult> GetOrders()

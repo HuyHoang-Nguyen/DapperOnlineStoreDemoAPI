@@ -8,9 +8,7 @@ namespace Demo.Domain.Consumer
     public class ProductConsumer : QueueConsumer<TestRabbit>
     {
         private readonly IProductRepository _productRepository;
-        public ProductConsumer(
-        IQueueProvider queueProvider, IProductRepository productRepository)
-        : base(queueProvider)
+        public ProductConsumer(IQueueProvider queueProvider, IProductRepository productRepository) : base(queueProvider)
         {
             _productRepository = productRepository;
         }

@@ -2,6 +2,7 @@
 using Demo.Domain.Enum.EnumError;
 using Demo.Domain.GlobalExceptionHandler;
 using Demo.Domain.IRepositories;
+using Demo.Domain.Models;
 using Demo.Domain.Services.Interfaces;
 
 namespace Demo.Domain.Services
@@ -56,13 +57,52 @@ namespace Demo.Domain.Services
             }
             return order.Id;
         }
+
+        public async Task<Guid> OrderCheckoutSnapshotAsync(Guid userId, string? couponCode, IEnumerable<CartItemsModel> cartItems)
+        {
+            if (userId == Guid.Empty)
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumOrderValidationError.UserIdInvalid.ToString()
+                });
+            }
+            var items = cartItems.ToList();
+            if (!items.Any())
+            {
+                throw new ValidationException(new List<string>
+                {
+                    EnumOrderValidationError.CartEmpty.ToString()
+                });
+            }
+
+            decimal discountAmount = 0;
+            if (!string.IsNullOrEmpty(couponCode))
+            {
+                var cartTotal = items.Sum(x => (x.DiscountPrice ?? x.Price) * x.Quantity);
+                var couponResult = await _couponService.ValidateAsync(couponCode, cartTotal, userId);
+                discountAmount = couponResult.DiscountAmount;
+            }
+
+            var order = await _orderRepository.CreateOrderAsync(userId, items, couponCode, discountAmount);
+            if (!string.IsNullOrEmpty(couponCode))
+            {
+                var coupon = await _couponRepository.GetByCodeAsync(couponCode);
+                if (coupon != null)
+                {
+                    await _couponRepository.DescUsageLimitAsync(coupon.Id);
+                }
+            }
+            return order.Id;
+        }
+
         public async Task<IEnumerable<Order>> GetOrdersAsync(Guid userId)
         {
             if (userId == Guid.Empty)
             {
                 throw new ValidationException(new List<string>
-                { 
-                    EnumOrderValidationError.UserIdInvalid.ToString() 
+                {
+                    EnumOrderValidationError.UserIdInvalid.ToString()
                 });
             }
             return await _orderRepository.GetOrdersAsync(userId);
@@ -122,6 +162,6 @@ namespace Demo.Domain.Services
                 });
             }
             await _orderRepository.DeleteOrderAsync(orderId, userId);
-        }
+        }      
     }
 }
