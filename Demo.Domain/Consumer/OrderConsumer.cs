@@ -7,15 +7,24 @@ namespace Demo.Domain.Consumer
     public class OrderConsumer : QueueConsumer<OrderRabbit>
     {
         private readonly IOrderService _orderService;
-        public OrderConsumer(IQueueProvider queueProvider, IOrderService orderService) : base(queueProvider)
+        private readonly INotificationService _notificationService;
+        public OrderConsumer(IQueueProvider queueProvider, IOrderService orderService, INotificationService notificationService) : base(queueProvider)
         {
             _orderService = orderService;
+            _notificationService = notificationService;
         }
         protected override async Task Handle(OrderRabbit orderRabbit)
         {
             if (orderRabbit.UserId != null)
             {
-                await _orderService.OrderCheckoutSnapshotAsync(orderRabbit.UserId, orderRabbit.CouponCode, orderRabbit.CartItems);
+                try
+                {
+                    await _orderService.OrderCheckoutSnapshotAsync(orderRabbit.UserId, orderRabbit.CouponCode, orderRabbit.CartItems);
+                }
+                catch (InvalidOperationException)
+                {
+                    await _notificationService.CreateAsync(orderRabbit.UserId, "Order failed - item ran out of stock", null);
+                }
             }
         }
     }

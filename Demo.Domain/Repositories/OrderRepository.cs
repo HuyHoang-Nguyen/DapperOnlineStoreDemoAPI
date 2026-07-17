@@ -43,28 +43,43 @@ namespace Demo.Domain.Repositories
                 DiscountAmount = discountAmount,
                 Status = EnumOrderStatus.Created,
             };
-            var createOrderSql = "insert into Orders(Id, Code, UserId, Subtotal, TotalAmount, DiscountAmount, CouponCode, Status) " +
-                                 "values (@Id, @Code, @UserId, @Subtotal, @TotalAmount, @DiscountAmount, @CouponCode, @Status) ";
-
-            await connection.ExecuteAsync(createOrderSql, order);
-
-            var orderItems = items.Select(i => new OrderItem
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+            try
             {
-                OrderId = order.Id,
-                ProductId = i.ProductId,
-                ProductName = i.Name,
-                Price = i.DiscountPrice ?? i.Price,
-                Quantity = i.Quantity,
-                ImageUrl = i.ImageUrl,
-            }).ToList();
-            var insertOrderItemSql = "insert into OrderItems (OrderId, ProductId, ProductName, Price, Quantity) " +
-                                     "values (@OrderId, @ProductId, @ProductName, @Price, @Quantity) ";
-            await connection.ExecuteAsync(insertOrderItemSql, orderItems);
-            var updateStockSql = "update Products " +
-                                 "set Stock = Stock - @Quantity " +
-                                 "where Id = @ProductId and IsDeleted = 0";
-            await connection.ExecuteAsync(updateStockSql, orderItems);
-            return order;
+                var createOrderSql = "insert into Orders(Id, Code, UserId, Subtotal, TotalAmount, DiscountAmount, CouponCode, Status) " +
+                                     "values (@Id, @Code, @UserId, @Subtotal, @TotalAmount, @DiscountAmount, @CouponCode, @Status) ";
+
+                await connection.ExecuteAsync(createOrderSql, order, transaction);
+
+                var orderItems = items.Select(i => new OrderItem
+                {
+                    OrderId = order.Id,
+                    ProductId = i.ProductId,
+                    ProductName = i.Name,
+                    Price = i.DiscountPrice ?? i.Price,
+                    Quantity = i.Quantity,
+                    ImageUrl = i.ImageUrl,
+                }).ToList();
+                var insertOrderItemSql = "insert into OrderItems (OrderId, ProductId, ProductName, Price, Quantity) " +
+                                         "values (@OrderId, @ProductId, @ProductName, @Price, @Quantity) ";
+                await connection.ExecuteAsync(insertOrderItemSql, orderItems, transaction);
+                var updateStockSql = "update Products " +
+                                     "set Stock = Stock - @Quantity " +
+                                     "where Id = @ProductId and IsDeleted = 0 and Stock >= @Quality";
+                var rowsAffected = await connection.ExecuteAsync(updateStockSql, orderItems, transaction);
+                if (rowsAffected != orderItems.Count)
+                {
+                    throw new InvalidOperationException("Order failed! Invalid stock");
+                }
+                transaction.Commit();
+                return order;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
         public async Task<IEnumerable<Order>> GetOrdersAsync(Guid userId)
         {

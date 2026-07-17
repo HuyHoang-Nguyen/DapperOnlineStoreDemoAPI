@@ -95,7 +95,6 @@ namespace Demo.Domain.Services
             }
             return order.Id;
         }
-
         public async Task<IEnumerable<Order>> GetOrdersAsync(Guid userId)
         {
             if (userId == Guid.Empty)

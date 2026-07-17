@@ -15,7 +15,7 @@ namespace Demo.Domain.Services.Workers
         {
             using var scope = _scopeFactory.CreateScope();
             var consumer = scope.ServiceProvider.GetRequiredService<OTPConsumer>();
-            await consumer.Start("otp_view_queue");
+            await consumer.Start("otp_send_queue");
         }
     }
 }

@@ -6,12 +6,10 @@ namespace Demo.Domain.Services
     public class OTPService : IOTPService
     {
         private readonly IOTPRepository _otpRepository;
-        private readonly IEmailService _emailService;
 
-        public OTPService(IOTPRepository otpRepository, IEmailService emailService)
+        public OTPService(IOTPRepository otpRepository)
         {
             _otpRepository = otpRepository;
-            _emailService = emailService;
         }
         public async Task<string> GenerateOTPAsync(string email)
         {

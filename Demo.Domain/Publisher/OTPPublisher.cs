@@ -11,7 +11,7 @@ namespace Demo.Domain.Publisher
         }
         public void PublishView(OTPRabbit model)
         {
-            _queue.Publish("otp_view_queue", new OTPRabbit()
+            _queue.Publish("otp_send_queue", new OTPRabbit()
             {
                  Email = model.Email,
                  Code = model.Code

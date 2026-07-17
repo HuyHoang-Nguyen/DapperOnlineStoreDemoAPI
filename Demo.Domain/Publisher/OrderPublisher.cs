@@ -12,7 +12,7 @@ namespace Demo.Domain.Publisher
         }
         public void PublishView(OrderRabbit model)
         {
-            _queue.Publish("order_view_queue", new OrderRabbit()
+            _queue.Publish("order_checkout_queue", new OrderRabbit()
             {
                 UserId = model.UserId,
                 CouponCode = model.CouponCode,

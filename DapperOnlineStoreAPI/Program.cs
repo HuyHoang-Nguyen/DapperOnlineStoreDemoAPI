@@ -44,8 +44,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.Configure<RabbitMqSettings>(
-    builder.Configuration.GetSection("RabbitMQ"));
+builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMQ"));
 
 builder.Services.AddSingleton<IQueueProvider, RabbitMqQueueProvider>();
 
@@ -60,7 +59,6 @@ builder.Services.AddSingleton<ConnectionFactory>(sp =>
     };
 });
 
-
 builder.Services.AddSingleton<IQueueProvider, RabbitMqQueueProvider>();
 
 builder.Services.AddScoped<ProductConsumer>();
@@ -68,7 +66,6 @@ builder.Services.AddScoped<OrderConsumer>();
 
 builder.Services.AddScoped<ProductPublisher>();
 builder.Services.AddScoped<OrderPublisher>();
-
 
 builder.Services.AddHostedService<ProductConsumerWorker>();
 builder.Services.AddHostedService<OrderConsumerWorker>();
@@ -85,6 +82,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -97,8 +95,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
 
