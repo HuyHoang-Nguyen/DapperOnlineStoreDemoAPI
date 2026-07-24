@@ -38,9 +38,9 @@ namespace Demo.Domain.Repositories
         public async Task<Guid> CreateAsync(ProductModel p)
         {
             using var connection = CreateConnection();
-            var sql =   "insert into Products(CategoryId, Name, Price, Stock, Discount, DiscountStart, DiscountEnd) " +
+            var sql =   "insert into Products(CategoryId, Name, Price, Stock, ImageUrl, Discount, DiscountStart, DiscountEnd) " +
                 "       output inserted.Id " +
-                "       values(@CategoryId, @Name, @Price, @Stock, @Discount, @DiscountStart, @DiscountEnd) ";
+                "       values(@CategoryId, @Name, @Price, @Stock, @ImageUrl, @Discount, @DiscountStart, @DiscountEnd) ";
             var product = new
             {
                 p.CategoryId,
@@ -139,6 +139,7 @@ namespace Demo.Domain.Repositories
                 "      Name = coalesce(@Name, Name), " +
                 "      Price = coalesce(@Price, Price), " +
                 "      Stock = coalesce(@Stock, Stock), " +
+                "      ImageUrl = coalesce(@ImageUrl, ImageUrl), " +  
                 "      Discount = coalesce(@Discount, Discount), " +
                 "      DiscountStart = coalesce(@DiscountStart, DiscountStart), " +
                 "      DiscountEnd = coalesce(@DiscountEnd, DiscountEnd), " +
@@ -153,6 +154,7 @@ namespace Demo.Domain.Repositories
                 p.Name,
                 p.Price,
                 p.Stock,
+                p.ImageUrl,
                 p.Discount,
                 p.DiscountStart,
                 p.DiscountEnd,

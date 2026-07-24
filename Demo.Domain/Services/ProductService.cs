@@ -11,9 +11,11 @@ namespace Demo.Domain.Services
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
-        public ProductService(IProductRepository productRepository)
+        private readonly IImageStorageService _imageStorageService;
+        public ProductService(IProductRepository productRepository, IImageStorageService imageStorageService)
         {
             _productRepository = productRepository;
+            _imageStorageService = imageStorageService;
         }
         public async Task<Guid> CreateAsync(ProductModel p)
         {
@@ -28,6 +30,11 @@ namespace Demo.Domain.Services
             if (errors.Any())
             {
                 throw new ValidationException(errors);
+            }
+            if (p.Images != null && p.Images.Any())
+            {
+                var urls = await _imageStorageService.SaveManyAsync(p.Images);
+                p.ImageUrl = string.Join("|", urls);
             }
             return await _productRepository.CreateAsync(p);
         }
@@ -70,6 +77,18 @@ namespace Demo.Domain.Services
                 {
                     throw new ValidationException(errors);
                 }
+            }
+            if (p.Images != null && p.Images.Any())
+            {
+                if (exists.ImageUrls != null && exists.ImageUrls.Any())
+                {
+                    foreach (var oldUrl in exists.ImageUrls)
+                    {
+                        await _imageStorageService.DeleteAsync(oldUrl);
+                    }
+                }
+                var urls = await _imageStorageService.SaveManyAsync(p.Images);
+                p.ImageUrl = string.Join("|", urls);
             }
             return await _productRepository.UpdateAsync(id, p);
         }

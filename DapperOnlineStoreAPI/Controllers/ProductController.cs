@@ -19,7 +19,7 @@ namespace DapperOnlineStoreAPI.Controllers
         }
         [Authorize(Roles = "Admin,Merchant")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ProductModel p)
+        public async Task<IActionResult> Create([FromForm] ProductModel p)
         {
             var id = await _productService.CreateAsync(p);
             return Ok(id);
@@ -42,7 +42,7 @@ namespace DapperOnlineStoreAPI.Controllers
         }
         [Authorize(Roles = "Admin,Merchant")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, UpdateProductModel p)
+        public async Task<IActionResult> Update(Guid id, [FromForm] UpdateProductModel p)
         {
             await _productService.UpdateAsync(id, p);
             return NoContent();

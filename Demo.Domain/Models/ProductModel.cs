@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace Demo.Domain.Models
 {
@@ -18,5 +19,7 @@ namespace Demo.Domain.Models
         public decimal? EventDiscount { get; set; }
         public DateTime? EventStart { get; set; }
         public DateTime? EventEnd { get; set; }
+        public List<IFormFile>? Images { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

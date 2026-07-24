@@ -1,4 +1,6 @@
-﻿namespace Demo.Domain.Models
+﻿using Microsoft.AspNetCore.Http;
+
+namespace Demo.Domain.Models
 {
     public class UpdateProductModel
     {
@@ -13,5 +15,7 @@
         public decimal? EventDiscount { get; set; }
         public DateTime? EventStart { get; set; }
         public DateTime? EventEnd { get; set; }
+        public List<IFormFile>? Images { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }
